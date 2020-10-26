@@ -16,6 +16,9 @@ function joinGame() {
 
     socket.onopen = function() { // 서버 접속됐을 때
         alert("접속 성공");
+        // 서버에게 내 정보 전송
+        var myPacket = new Packet("my",my);
+        socket.send(JSON.stringify(myPacket));
     }
     
     socket.onclose = function() { // 연결 끊어졌을때
@@ -33,19 +36,25 @@ $(function() {
     $("#intro").submit(function(event) {
         event.preventDefault();
         var userName = $("#intro-name").val().trim();
-        console.log(userName);
         if(userName.trim() == "")
             return;
+        console.log(userName);
+        my = new Player(userName, 0, 0);
         joinGame();
     });
 
 });
 
+function Packet(type, data) {
+    this.type = type;
+    this.data = data;
+}
+
 function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
-    this.leave
+    this.leaved = false; // 나갔는지 여부
 }
 
 function findPlayer (name) { // 닉네임을 가지고 joined배열에서 플레이어 객체 찾기 (닉네임이 자신일 경우 myUser 반환)
