@@ -5,10 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animals</title>
 
+    <link rel="stylesheet" href="animals.css"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="server.js"></script>
 </head>
 <body>
-    <h1>Animals</h1>
+
+    <div id="intro-form">
+        <div class="intro-content">
+            <form id="intro">
+                <img src="images/logo.png" alt="로고">
+                <h3>조작키는 방향키로 움직일 수 있으며, [Space] 키를 누를 경우 공격합니다.</h3>
+                <hr style="height: 10px; box-shadow: 0 5px 5px -5px #8c8b8b inset; border: 0;">
+            
+                <input name="name" id="intro-name" type="text" placeholder="닉네임을 입력..."/>
+                <button id="intro-join" type="submit">참가</button>
+            
+            </form>
+        </div>
+    </div>
+
+    
 </body>
 </html>

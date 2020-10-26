@@ -1,0 +1,54 @@
+#intro-form {
+    
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: black;
+    background-color: rgba(0, 0, 0, 0.5);
+
+}
+
+.intro-content {
+
+    text-align: center;
+    animation: fadein 0.6s;
+    border-radius: 20px;
+    background-color: white;
+    border: 1px solid gray;
+    margin: 4% auto;
+    padding: 20px;
+    width: 80%;
+
+}
+
+input[type=text] {
+
+    text-align: center;
+    font-size: 20px;
+    outline: none;
+    border: none;
+    border-bottom: 4px solid steelblue;
+}
+
+button {
+    background-color: steelblue; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  }
+
+@keyframes fadein {
+    
+    0% { transform: scale(0)}
+    80% {transform: scale(1.1)}
+    100% {transform: scale(1)}
+
+}
