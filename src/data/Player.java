@@ -1,13 +1,22 @@
 package data;
 
+import io.vertx.core.http.ServerWebSocket;
+
 public class Player {
 
+	private ServerWebSocket ws;
 	private String name;
 	private int x, y;
 	private boolean leaved;
 	
 	
 	
+	public ServerWebSocket getWs() {
+		return ws;
+	}
+	public void setWs(ServerWebSocket ws) {
+		this.ws = ws;
+	}
 	public String getName() {
 		return name;
 	}
