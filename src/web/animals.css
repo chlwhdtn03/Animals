@@ -52,3 +52,18 @@ button {
     100% {transform: scale(1)}
 
 }
+
+#playerbox {
+    margin: 10px;
+    padding: 15px;
+    display: inline-block;
+    text-align: center;
+    background-color: darkslateblue;
+    color: white;
+}
+
+#playerphoto {
+    background: white;
+    border: 1px solid black;
+    border-radius: 50%;
+}

@@ -23,7 +23,7 @@ public class Animals {
 		
 		try {
 			Properties pro = new Properties();
-			File f_build = new File("build.properties");
+			File f_build = new File("build.txt");
 			if(f_build.exists() == false) f_build.createNewFile();
 			pro.load(new FileInputStream(f_build));
 			build = Integer.parseInt(pro.getProperty("build", "0"));

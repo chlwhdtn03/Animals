@@ -1,8 +1,13 @@
 package data;
 
+import java.io.Serializable;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import io.vertx.core.http.ServerWebSocket;
 
-public class Player {
+public class Player implements Serializable {
 
 	private ServerWebSocket ws;
 	private String name;
@@ -40,6 +45,16 @@ public class Player {
 	}
 	public void setLeaved(boolean leaved) {
 		this.leaved = leaved;
+	}
+	
+	@Override
+	public String toString() {
+		JsonObject obj = new JsonObject();
+		obj.addProperty("name", name);
+		obj.addProperty("x", x);
+		obj.addProperty("y", y);
+		obj.addProperty("leaved", leaved);
+		return obj.toString();
 	}
 	
 	

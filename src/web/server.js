@@ -18,6 +18,7 @@ function joinGame() {
         alert("접속 성공");
         // 서버에게 내 정보 전송
         var myPacket = new Packet("my",my);
+        
         socket.send(JSON.stringify(myPacket));
     }
     
@@ -26,9 +27,60 @@ function joinGame() {
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
-        alert(a.data);
+        var type = JSON.parse(a.data).type;
+        var data = JSON.parse(JSON.parse(a.data).data);
+        console.log(data);
+        switch(type) {
+            case "join":
+                addPlayerbox(data.name);
+                break;
+
+            case "leave":
+                deletePlayerbox(data.name);
+                break;
+        }
     }
 
+}
+
+function addPlayerbox(name) {
+    /**
+     * <div id="playerbox">
+        <img id="playerphoto" width="120px" height="120px">
+        <figcaption id="playername">블랙핑크</figcaption>
+        </div>
+     */
+
+     var rootdiv = document.createElement("div");
+     rootdiv.setAttribute("id", "playerbox");
+     rootdiv.setAttribute("owner", name);
+
+     var imgtag = document.createElement("img");
+     imgtag.setAttribute("id", "playerphoto");
+     imgtag.setAttribute("width", "120px");
+     imgtag.setAttribute("height", "120px");
+
+     var nametag = document.createElement("figcaption");
+     nametag.setAttribute("id","playername");
+     nametag.innerText = name;
+
+     rootdiv.appendChild(imgtag);
+     rootdiv.appendChild(nametag);
+    
+     $("#Queue").append(rootdiv);
+}
+
+function deletePlayerbox(name) {
+    var rootdiv = document.getElementById("Queue");
+    console.log(rootdiv.childElementCount);
+    for(var i = 0; i < rootdiv.childElementCount; i++) {
+        var adiv = rootdiv.childNodes[i];
+        console.log(adiv);
+        if(adiv.nextSibling.getAttribute("owner") == name) {
+            rootdiv.removeChild(adiv.nextSibling);
+            return;
+        }
+    }
 }
 
 $(function() {
