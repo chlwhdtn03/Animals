@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import gui.AnimalsGUI;
 import server.AnimalServer;
 import util.Log;
 
@@ -13,10 +14,22 @@ public class Animals {
 	/** 웹 포트 */
 	public static final int port = 80;
 	public static int build;
+	public static AnimalsGUI gui;
 	
 	public static void main(String[] args) {
 		loadBuildCount();
-		new AnimalServer();
+		
+		Thread Thread_server = new Thread(() -> {
+			new AnimalServer();
+		});
+		Thread_server.setName("중앙서버 쓰레드");
+		Thread_server.start();
+	
+		Thread Thread_console = new Thread(() -> {
+			gui = new AnimalsGUI();
+		});
+		Thread_console.setName("GUI 쓰레드");
+		Thread_console.start();
 	}
 
 	private static void loadBuildCount() {

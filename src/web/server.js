@@ -19,7 +19,7 @@ function joinGame() {
         // 서버에게 내 정보 전송
         var myPacket = new Packet("my",my);
         
-        socket.send(JSON.stringify(myPacket));
+        socket.send(JSON.stringify(myPacket).trim());
     }
     
     socket.onclose = function() { // 연결 끊어졌을때
