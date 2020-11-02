@@ -1,12 +1,11 @@
 package server;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 
+import animals.Animals;
 import data.Player;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
@@ -14,8 +13,6 @@ import packet.AnimalsPacket;
 import util.Log;
 
 public class ConnectionListener implements Handler<ServerWebSocket> {
-
-	List<Player> onlinePlayers = new ArrayList<Player>();
 
 	@Override
 	public void handle(ServerWebSocket ws) {
@@ -32,15 +29,15 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
 					player.setWs(ws);
 					
-					for (Player p : onlinePlayers) {
+					for (Player p : Animals.onlinePlayers) {
 						send(ws, new AnimalsPacket("join", p)); // 지금 접속한 플레이어에게 모든 플레이어 정보 전송
 					}
 
-					onlinePlayers.add(player); // 지금 접속한 플레이어 저장
+					Animals.onlinePlayers.add(player); // 지금 접속한 플레이어 저장
 
 					sendAll(new AnimalsPacket("join", player)); // 모든 플레이어에게 현재 접속한 플레이어 정보 전송
 					Log.info(player.getName() + "(" + ws.remoteAddress() + ") 가 접속했습니다.");
-					throw new Exception();
+					Animals.gui.refreshPlayerList();
 				} catch (Exception e) {
 					Log.error(e);
 				}
@@ -53,8 +50,9 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			if (isOnline(ws)) {
 				Player player = getPlayer(ws);
 				Log.info(player.getName() + "(" + ws.remoteAddress() + ") 가 나갔습니다.");
-				onlinePlayers.remove(player);
+				Animals.onlinePlayers.remove(player);
 				sendAll(new AnimalsPacket("leave", player));
+				Animals.gui.refreshPlayerList();
 
 			}
 		});
@@ -67,7 +65,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	 */
 	public void sendAll(AnimalsPacket packet) {
 
-		for (Player p : onlinePlayers) {
+		for (Player p : Animals.onlinePlayers) {
 			try {
 				p.getWs().writeFinalTextFrame(packet.toString());
 			} catch (Exception e) {
@@ -85,11 +83,11 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	}
 
 	public boolean isOnline(ServerWebSocket ws) {
-		return onlinePlayers.stream().anyMatch(obj -> obj.getWs().equals(ws));
+		return Animals.onlinePlayers.stream().anyMatch(obj -> obj.getWs().equals(ws));
 	}
 
 	public Player getPlayer(ServerWebSocket ws) {
-		return onlinePlayers.stream().filter(obj -> obj.getWs().equals(ws)).findFirst().get();
+		return Animals.onlinePlayers.stream().filter(obj -> obj.getWs().equals(ws)).findFirst().get();
 	}
 
 }

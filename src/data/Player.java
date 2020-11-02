@@ -2,7 +2,6 @@ package data;
 
 import java.io.Serializable;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import io.vertx.core.http.ServerWebSocket;

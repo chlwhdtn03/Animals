@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
+import data.Player;
 import gui.AnimalsGUI;
 import server.AnimalServer;
 import util.Log;
@@ -15,6 +18,9 @@ public class Animals {
 	public static final int port = 80;
 	public static int build;
 	public static AnimalsGUI gui;
+	
+	/** 중요 데이터 */
+	public static List<Player> onlinePlayers = new ArrayList<Player>();
 	
 	public static void main(String[] args) {
 		loadBuildCount();

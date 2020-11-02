@@ -36,8 +36,6 @@ public class AnimalServer {
 					} else {
 						Log.error("이미 사용중인 포트입니다.");
 					}
-				});
-		
+				});	
 	}
-	
 }
