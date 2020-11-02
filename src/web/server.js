@@ -15,7 +15,6 @@ function joinGame() {
     socket = new WebSocket("ws://" + location.host + "/animals");
 
     socket.onopen = function() { // 서버 접속됐을 때
-        alert("접속 성공");
         // 서버에게 내 정보 전송
         var myPacket = new Packet("my",my);
         
@@ -31,6 +30,11 @@ function joinGame() {
         var data = JSON.parse(JSON.parse(a.data).data);
         console.log(data);
         switch(type) {
+        
+            case "build":
+                $("#buildspan").text("Build. " + data);
+                break;
+                
             case "join":
                 addPlayerbox(data.name);
                 break;

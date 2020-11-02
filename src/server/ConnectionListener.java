@@ -20,7 +20,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 		ws.frameHandler(frame -> { // 한 클라이언트가 메세지를 보낼 때
 
 			Gson gson = new Gson();
-			Log.info(frame.textData());
+//			Log.info(frame.textData());
 			AnimalsPacket packet = gson.fromJson(frame.textData(), AnimalsPacket.class);
 
 			switch (packet.getType()) { // server.js 참고
@@ -29,6 +29,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
 					player.setWs(ws);
 					
+					send(ws, new AnimalsPacket("build", Animals.build));					
 					for (Player p : Animals.onlinePlayers) {
 						send(ws, new AnimalsPacket("join", p)); // 지금 접속한 플레이어에게 모든 플레이어 정보 전송
 					}
