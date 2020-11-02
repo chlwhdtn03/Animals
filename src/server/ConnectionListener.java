@@ -6,6 +6,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import animals.Animals;
+import data.Chat;
 import data.Player;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
@@ -37,11 +38,17 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					Animals.onlinePlayers.add(player); // 지금 접속한 플레이어 저장
 
 					sendAll(new AnimalsPacket("join", player)); // 모든 플레이어에게 현재 접속한 플레이어 정보 전송
-					Log.info(player.getName() + "(" + ws.remoteAddress() + ") 가 접속했습니다.");
+					Log.info(player.getName() + "(" + ws.remoteAddress() + ")가 접속했습니다.");
 					Animals.gui.refreshPlayerList();
 				} catch (Exception e) {
 					Log.error(e);
 				}
+				break;
+				
+			case "chat":
+				Chat chat = gson.fromJson(gson.toJson(packet.getData()), Chat.class);
+				Log.info(chat.getName() + " > " + chat.getMessage());
+				sendAll(new AnimalsPacket("chat", chat));
 				break;
 			}
 
@@ -50,7 +57,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 		ws.closeHandler(v -> { // 한 클라이언트의 접속 끊겼을때
 			if (isOnline(ws)) {
 				Player player = getPlayer(ws);
-				Log.info(player.getName() + "(" + ws.remoteAddress() + ") 가 나갔습니다.");
+				Log.info(player.getName() + "(" + ws.remoteAddress() + ")가 나갔습니다.");
 				Animals.onlinePlayers.remove(player);
 				sendAll(new AnimalsPacket("leave", player));
 				Animals.gui.refreshPlayerList();

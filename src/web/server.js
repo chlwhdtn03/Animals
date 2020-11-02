@@ -30,6 +30,10 @@ function joinGame() {
         var data = JSON.parse(JSON.parse(a.data).data);
         console.log(data);
         switch(type) {
+
+            case "chat":
+                appendChat(data);
+                break;
         
             case "build":
                 $("#buildspan").text("Build. " + data);
@@ -87,6 +91,15 @@ function deletePlayerbox(name) {
     }
 }
 
+function appendChat(chat) {
+    var rootp = document.createElement("span");
+    rootp.style.display = "block";
+    rootp.innerText = chat.name + " > " + chat.message;
+    var chatdiv = document.getElementById("footer-chat");
+    chatdiv.appendChild(rootp);
+    chatdiv.scrollTop = chatdiv.scrollHeight;
+}
+
 $(function() {
 
     $("#intro").submit(function(event) {
@@ -97,6 +110,15 @@ $(function() {
         console.log(userName);
         my = new Player(userName, 0, 0);
         joinGame();
+    });
+
+    $("#chatting").submit(function(event) {
+        event.preventDefault();
+        var message = $("#input-chat").val().trim();
+        if(message.trim() == "")
+            return;
+        socket.send(JSON.stringify(new Packet("chat", new Chat(my.name, message))));
+        $("#input-chat").val("");
     });
 
 });
@@ -111,6 +133,11 @@ function Player(name, x, y) { // 플레이어 객체
     this.x = x;
     this.y = y;
     this.leaved = false; // 나갔는지 여부
+}
+
+function Chat(name, message) { // 채팅 객체
+    this.name = name;
+    this.message = message; // 나갔는지 여부
 }
 
 function findPlayer (name) { // 닉네임을 가지고 joined배열에서 플레이어 객체 찾기 (닉네임이 자신일 경우 myUser 반환)

@@ -36,7 +36,7 @@ public class AnimalsGUI extends JFrame {
 	public JList<String> playerlist;
 	public JScrollPane playerlist_scrollbar;
 	
-	private Font font = new Font("맑은 고딕", Font.PLAIN, 12);
+	private Font font = new Font("맑은 고딕", Font.PLAIN, 14);
 	
 	private List<String> addresslist = new ArrayList<String>();
 	private int address_count = 0;
