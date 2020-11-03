@@ -68,9 +68,10 @@ public class AnimalsGUI extends JFrame {
 		playerlist.setFont(font);
 		
 		AnimalsScrollbarUI scroll_ui = new AnimalsScrollbarUI();
+		AnimalsScrollbarUI scroll_ui2 = new AnimalsScrollbarUI();
 		
 		scrollbar.getVerticalScrollBar().setUI(scroll_ui);
-		playerlist_scrollbar.getVerticalScrollBar().setUI(scroll_ui);
+		playerlist_scrollbar.getVerticalScrollBar().setUI(scroll_ui2);
 		
 		
 		JLabel connectDescription = new JLabel("이게 뭔 컴퓨터죠?");

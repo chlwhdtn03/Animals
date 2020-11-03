@@ -6,8 +6,27 @@ var my; // 자신 객체
 var isStarted = 0 // 게임이 시작했는지
 
 
+function notice(msg) {
+    // Get the snackbar DIV
+    var x = document.getElementById("snackbar");
+    x.innerText = msg;
+  
+    // Add the "show" class to DIV
+    x.className = "show";
+  
+    // After 3 seconds, remove the show class from DIV
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 5000);
+}
+
 function send(obj) {
     socket.send(obj);
+}
+
+function ready() {
+    if(my.ready == false) {
+        var packet = new Packet("ready", my.name);
+        socket.send(JSON.stringify(packet).trim());
+    }
 }
 
 function joinGame() {
@@ -22,7 +41,7 @@ function joinGame() {
     }
     
     socket.onclose = function() { // 연결 끊어졌을때
-        alert("접속 해제");
+        notice("서버와의 연결이 끊겼습니다.");
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
@@ -30,7 +49,7 @@ function joinGame() {
         var data = JSON.parse(JSON.parse(a.data).data);
         console.log(data);
         switch(type) {
-
+            
             case "chat":
                 appendChat(data);
                 break;
@@ -38,17 +57,60 @@ function joinGame() {
             case "build":
                 $("#buildspan").text("Build. " + data);
                 break;
+
+            case "ready":
+                getPlayer(data.readyer).ready = true;
+                checkReady(data.readyer);
+                break;
                 
             case "join":
+                addPlayer(data);
                 addPlayerbox(data.name);
+                checkReady(data.name);
                 break;
 
             case "leave":
+                removePlayer(data);
                 deletePlayerbox(data.name);
                 break;
         }
     }
 
+}
+
+function addPlayer(player)  { // 플레이어 추가
+    if(player.name == my.name) {
+        joined.push(my);
+    } else {
+        joined.push(player);
+    }
+}
+
+function removePlayer(player)  { // 플레이어 제거
+    const itemToFind = joined.find(function(item) {
+        return item.name == player.name;
+    });
+    const index = joined.indexOf(itemToFind);
+    if(index > -1)
+        joined.splice(index, 1)
+}
+
+function checkReady(name) {
+    if(getPlayer(name).ready)
+        getPlayerbox(name).style.backgroundColor = 'darkgreen';
+    else
+        getPlayerbox(name).style.backgroundColor = 'darkslateblue'
+}
+
+function getPlayer(pname)  { // 플레이어 객체 가져오기
+    return joined.find(function(item) {
+        return item.name == pname;
+    });
+}
+
+
+function checkAllPlayer()  { // 레디한 플레이어 설정
+    console.log(joined);
 }
 
 function addPlayerbox(name) {
@@ -76,6 +138,16 @@ function addPlayerbox(name) {
      rootdiv.appendChild(nametag);
     
      $("#Queue").append(rootdiv);
+}
+
+function getPlayerbox(name) {
+    var rootdiv = document.getElementById("Queue");
+    for(var i = 0; i < rootdiv.childElementCount; i++) {
+        var adiv = rootdiv.childNodes[i];
+        if(adiv.nextSibling.getAttribute("owner") == name) {
+            return adiv.nextSibling;
+        }
+    }
 }
 
 function deletePlayerbox(name) {
@@ -132,6 +204,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
+    this.ready = false; // 준비했는지 여부  
     this.leaved = false; // 나갔는지 여부
 }
 

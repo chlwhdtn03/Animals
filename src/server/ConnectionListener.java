@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import animals.Animals;
 import data.Chat;
 import data.Player;
+import data.Ready;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import packet.AnimalsPacket;
@@ -28,6 +29,13 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			case "my":
 				try {
 					Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
+					
+					if(isAlreadyName(player.getName())) {
+						Log.warning(ws.remoteAddress() + "에서 중복된 닉네임("+player.getName()+"을 사용하여 연결 해제하였습니다.");
+						ws.close();
+						return;
+					}
+					
 					player.setWs(ws);
 					
 					send(ws, new AnimalsPacket("build", Animals.build));					
@@ -50,6 +58,16 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				Log.info(chat.getName() + " > " + chat.getMessage());
 				sendAll(new AnimalsPacket("chat", chat));
 				break;
+				
+			case "ready":
+				try {
+					String readyer = (String) packet.getData();
+					getPlayer(readyer).setReady(true);
+					Log.info(readyer + "가 준비했습니다.");
+					sendAll(new AnimalsPacket("ready", new Ready(readyer)));
+				} catch(Exception e) {
+					Log.error(e);
+				}
 			}
 
 		});
@@ -61,7 +79,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				Animals.onlinePlayers.remove(player);
 				sendAll(new AnimalsPacket("leave", player));
 				Animals.gui.refreshPlayerList();
-
+				ws.close();
 			}
 		});
 
@@ -96,6 +114,14 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 
 	public Player getPlayer(ServerWebSocket ws) {
 		return Animals.onlinePlayers.stream().filter(obj -> obj.getWs().equals(ws)).findFirst().get();
+	}
+	
+	public Player getPlayer(String name) {
+		return Animals.onlinePlayers.stream().filter(obj -> obj.getName().equals(name)).findFirst().get();
+	}
+	
+	public boolean isAlreadyName(String name) {
+		return Animals.onlinePlayers.stream().anyMatch(obj -> obj.getName().equals(name));
 	}
 
 }

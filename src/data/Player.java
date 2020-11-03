@@ -11,10 +11,17 @@ public class Player implements Serializable {
 	private ServerWebSocket ws;
 	private String name;
 	private int x, y;
+	private boolean ready;
 	private boolean leaved;
 	
 	
 	
+	public boolean isReady() {
+		return ready;
+	}
+	public void setReady(boolean ready) {
+		this.ready = ready;
+	}
 	public ServerWebSocket getWs() {
 		return ws;
 	}
@@ -52,6 +59,7 @@ public class Player implements Serializable {
 		obj.addProperty("name", name);
 		obj.addProperty("x", x);
 		obj.addProperty("y", y);
+		obj.addProperty("ready", ready);
 		obj.addProperty("leaved", leaved);
 		return obj.toString();
 	}
