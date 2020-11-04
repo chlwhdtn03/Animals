@@ -5,6 +5,8 @@ var my; // 자신 객체
 
 var isStarted = 0 // 게임이 시작했는지
 
+var disconnectCode = 0;
+
 
 function notice(msg) {
     // Get the snackbar DIV
@@ -41,7 +43,13 @@ function joinGame() {
     }
     
     socket.onclose = function() { // 연결 끊어졌을때
-        notice("서버와의 연결이 끊겼습니다.");
+        switch(disconnectCode) {
+            case 0:
+                notice("서버와의 연결이 끊겼습니다.");
+                break;
+            case 1:
+                notice("중복된 닉네임을 사용했습니다. F5를 눌러 다시 접속하세요.")
+        }
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
@@ -50,6 +58,10 @@ function joinGame() {
         console.log(data);
         switch(type) {
             
+            case "kick":
+                disconnectCode = data;
+                break;
+                
             case "chat":
                 appendChat(data);
                 break;
@@ -72,6 +84,11 @@ function joinGame() {
             case "leave":
                 removePlayer(data);
                 deletePlayerbox(data.name);
+                break;
+                
+            case "changeProfile":
+                getPlayer(data.name).animal = data.animal;
+                getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
         }
     }
@@ -97,9 +114,9 @@ function removePlayer(player)  { // 플레이어 제거
 
 function checkReady(name) {
     if(getPlayer(name).ready)
-        getPlayerbox(name).style.backgroundColor = 'darkgreen';
+        getPlayerbox(name).style.backgroundColor = '#F29494';
     else
-        getPlayerbox(name).style.backgroundColor = 'darkslateblue'
+        getPlayerbox(name).style.backgroundColor = '#148BA6'
 }
 
 function getPlayer(pname)  { // 플레이어 객체 가져오기
@@ -146,6 +163,16 @@ function getPlayerbox(name) {
         var adiv = rootdiv.childNodes[i];
         if(adiv.nextSibling.getAttribute("owner") == name) {
             return adiv.nextSibling;
+        }
+    }
+}
+
+function getPlayerboxImage(name) {
+    var rootdiv = document.getElementById("Queue");
+    for(var i = 0; i < rootdiv.childElementCount; i++) {
+        var adiv = rootdiv.childNodes[i];
+        if(adiv.nextSibling.getAttribute("owner") == name) {
+            return adiv.nextElementSibling;
         }
     }
 }
@@ -204,6 +231,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
+    this.animal = ""; // 어떤 동물인지
     this.ready = false; // 준비했는지 여부  
     this.leaved = false; // 나갔는지 여부
 }

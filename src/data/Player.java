@@ -4,18 +4,27 @@ import java.io.Serializable;
 
 import com.google.gson.JsonObject;
 
+import animals.AnimalType;
 import io.vertx.core.http.ServerWebSocket;
 
 public class Player implements Serializable {
 
 	private ServerWebSocket ws;
 	private String name;
+	private AnimalType animal; // 동물 이름
 	private int x, y;
 	private boolean ready;
 	private boolean leaved;
 	
 	
 	
+	
+	public String getAnimal() {
+		return animal.getName();
+	}
+	public void setAnimal(AnimalType animal) {
+		this.animal = animal;
+	}
 	public boolean isReady() {
 		return ready;
 	}
@@ -60,6 +69,11 @@ public class Player implements Serializable {
 		obj.addProperty("x", x);
 		obj.addProperty("y", y);
 		obj.addProperty("ready", ready);
+		try {
+			obj.addProperty("animal", animal.getName());
+		} catch(Exception e) {
+			obj.addProperty("animal", "");
+		}
 		obj.addProperty("leaved", leaved);
 		return obj.toString();
 	}

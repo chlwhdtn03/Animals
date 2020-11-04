@@ -2,9 +2,11 @@ package server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.google.gson.Gson;
 
+import animals.AnimalType;
 import animals.Animals;
 import data.Chat;
 import data.Player;
@@ -32,6 +34,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					
 					if(isAlreadyName(player.getName())) {
 						Log.warning(ws.remoteAddress() + "에서 중복된 닉네임("+player.getName()+"을 사용하여 연결 해제하였습니다.");
+						send(ws, new AnimalsPacket("kick", 1));
 						ws.close();
 						return;
 					}
@@ -65,6 +68,36 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					getPlayer(readyer).setReady(true);
 					Log.info(readyer + "가 준비했습니다.");
 					sendAll(new AnimalsPacket("ready", new Ready(readyer)));
+					
+					if(isAllReady(2)) { // 2명 이상 이고 모두 레디 눌렀을때
+						
+						int temp;
+						Random random = new Random();
+						for(Player p : Animals.onlinePlayers) { // 모두에게 랜덤으로 동물 배정
+							temp = random.nextInt(8); // 7 랜덤생성
+							if(temp == 0)
+								p.setAnimal(AnimalType.치타);			
+							else if(temp == 1)
+								p.setAnimal(AnimalType.얼룩말);		
+							else if(temp == 2)
+								p.setAnimal(AnimalType.악어);		
+							else if(temp == 3)
+								p.setAnimal(AnimalType.하마);		
+							else if(temp == 4)
+								p.setAnimal(AnimalType.말);		
+							else if(temp == 5)
+								p.setAnimal(AnimalType.사슴);	
+							else if(temp == 6)
+								p.setAnimal(AnimalType.사자);			
+							else if(temp == 7)
+								p.setAnimal(AnimalType.유인원);			
+							sendAll(new AnimalsPacket("changeProfile", p));
+						}
+						
+						sendAll(new AnimalsPacket("startgame", 1));
+					}
+						
+					
 				} catch(Exception e) {
 					Log.error(e);
 				}
@@ -123,5 +156,12 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	public boolean isAlreadyName(String name) {
 		return Animals.onlinePlayers.stream().anyMatch(obj -> obj.getName().equals(name));
 	}
+	
+	public boolean isAllReady(int min_Player) {
+		if(Animals.onlinePlayers.size() < min_Player)
+			return false;
+		return Animals.onlinePlayers.stream().allMatch(obj -> obj.isReady() == true);
+	}
+
 
 }
