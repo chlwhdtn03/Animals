@@ -25,17 +25,19 @@ public class Animals {
 	public static void main(String[] args) {
 		loadBuildCount();
 		
+		Thread Thread_console = new Thread(() -> {
+			gui = new AnimalsGUI();
+		});
+		Thread_console.setName("GUI 쓰레드");
+		Thread_console.start();
+		
 		Thread Thread_server = new Thread(() -> {
 			new AnimalServer();
 		});
 		Thread_server.setName("중앙서버 쓰레드");
 		Thread_server.start();
 	
-		Thread Thread_console = new Thread(() -> {
-			gui = new AnimalsGUI();
-		});
-		Thread_console.setName("GUI 쓰레드");
-		Thread_console.start();
+		
 	}
 
 	private static void loadBuildCount() {

@@ -108,17 +108,20 @@ public class AnimalsGUI extends JFrame {
 				((JLabel) e.getSource()).setText("주소창에 '" + addresslist.get(address_count++) + "' 를 입력하세요");
 			}
 		});
+		add(playerlist_scrollbar, BorderLayout.EAST);
 		
-
 		add(connectDescription, BorderLayout.NORTH);
 		add(scrollbar, BorderLayout.CENTER);
 		
-		add(playerlist_scrollbar, BorderLayout.EAST);
+		
+		
 		
 		setSize(700,300);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
+		
+		playerlist_scrollbar.setPreferredSize(playerlist_scrollbar.getSize());
 	}
 	
 	public void refreshPlayerList() {

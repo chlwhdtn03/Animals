@@ -113,10 +113,13 @@ function removePlayer(player)  { // 플레이어 제거
 }
 
 function checkReady(name) {
-    if(getPlayer(name).ready)
+    if(getPlayer(name).ready) {
         getPlayerbox(name).style.backgroundColor = '#F29494';
-    else
-        getPlayerbox(name).style.backgroundColor = '#148BA6'
+        getPlayerboxImage(name).getElementsByTagName("img")[0].style.backgroundColor = '#f294aa';
+    } else {
+        getPlayerbox(name).style.backgroundColor = '#148BA6';
+        getPlayerboxImage(name).getElementsByTagName("img")[0].style.backgroundColor = '#148BB9';
+    }
 }
 
 function getPlayer(pname)  { // 플레이어 객체 가져오기
