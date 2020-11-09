@@ -134,9 +134,14 @@ button {
     visibility: visible; /* Show the snackbar */
     /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
     However, delay the fade out process for 2.5 seconds */
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
-    animation: fadein 0.5s, fadeout 0.5s 4.5s;
+    -webkit-animation: fadein 0.5s;
+    animation: fadein 0.5s;
   }
+
+#snackbar.hide {
+    -webkit-animation: fadeout 0.5s;
+    animation: fadeout 0.5s;
+}
   
   /* Animations to fade the snackbar in and out */
   @-webkit-keyframes fadein {

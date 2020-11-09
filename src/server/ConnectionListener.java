@@ -41,7 +41,8 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					
 					player.setWs(ws);
 					
-					send(ws, new AnimalsPacket("build", Animals.build));					
+					send(ws, new AnimalsPacket("build", Animals.build));
+					send(ws, new AnimalsPacket("started", Animals.isStarted));
 					for (Player p : Animals.onlinePlayers) {
 						send(ws, new AnimalsPacket("join", p)); // 지금 접속한 플레이어에게 모든 플레이어 정보 전송
 					}
@@ -70,31 +71,54 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					sendAll(new AnimalsPacket("ready", new Ready(readyer)));
 					
 					if(isAllReady(2)) { // 2명 이상 이고 모두 레디 눌렀을때
+						if(Animals.isStarted)
+							return;
 						
 						int temp;
 						Random random = new Random();
 						for(Player p : Animals.onlinePlayers) { // 모두에게 랜덤으로 동물 배정
-							temp = random.nextInt(8); // 7 랜덤생성
-							if(temp == 0)
-								p.setAnimal(AnimalType.치타);			
-							else if(temp == 1)
-								p.setAnimal(AnimalType.얼룩말);		
-							else if(temp == 2)
-								p.setAnimal(AnimalType.악어);		
-							else if(temp == 3)
-								p.setAnimal(AnimalType.하마);		
-							else if(temp == 4)
-								p.setAnimal(AnimalType.말);		
-							else if(temp == 5)
-								p.setAnimal(AnimalType.사슴);	
-							else if(temp == 6)
-								p.setAnimal(AnimalType.사자);			
-							else if(temp == 7)
-								p.setAnimal(AnimalType.유인원);			
-							sendAll(new AnimalsPacket("changeProfile", p));
+							try {
+								p.getAnimal();
+								continue;
+							} catch(Exception e) {
+								temp = random.nextInt(8); // 7 랜덤생성
+								if(temp == 0)
+									p.setAnimal(AnimalType.치타);			
+								else if(temp == 1)
+									p.setAnimal(AnimalType.얼룩말);		
+								else if(temp == 2)
+									p.setAnimal(AnimalType.악어);		
+								else if(temp == 3)
+									p.setAnimal(AnimalType.하마);		
+								else if(temp == 4)
+									p.setAnimal(AnimalType.말);		
+								else if(temp == 5)
+									p.setAnimal(AnimalType.사슴);	
+								else if(temp == 6)
+									p.setAnimal(AnimalType.사자);			
+								else if(temp == 7)
+									p.setAnimal(AnimalType.유인원);		
+							}							
+								
+							sendAll(new AnimalsPacket("changeProfile", p)); // 바뀐 프로필 적용
 						}
 						
-						sendAll(new AnimalsPacket("startgame", 1));
+						Thread tempThread = new Thread(() -> {
+							for(int i = 5; i > 0; i--) {
+								Log.info("게임 시작 대기중...");
+								sendAll(new AnimalsPacket("waitTostart", i)); // 게임 시작 전 카운트 다운
+								try {
+									Thread.sleep(1000);
+								} catch (InterruptedException e) {
+									Log.error(e);
+								}
+							}
+							Log.info("게임이 시작되었습니다.");
+							Animals.isStarted = true; // 게임 시작 기록
+							sendAll(new AnimalsPacket("startgame", 1)); // 전원에게 게임 시작
+						});
+						tempThread.start();
+						
 					}
 						
 					

@@ -23,28 +23,37 @@
             </form>
         </div>
     </div>
-
-    <h1 style="text-align: center">Animals 대기실</h1>
-    <span style="font-size: 12px; text-align: right; display: block" id="buildspan">Build. 99</span>
     
-    <div id="Queue">
+    <div id="QueueFrame">
 
-    </div>
+        <h1 style="text-align: center">Animals 대기실</h1>
+        <span style="font-size: 12px; text-align: right; display: block" id="buildspan">Build. 99</span>
 
-    <div id="footer">
-
-        <button onclick="ready()" style="display: block; width: 100%;">준비하기</button>
-
-        <div id="footer-chat">
+        <div id="Queue">
 
         </div>
 
-        <form id="chatting">
-            <input type="text" id="input-chat" maxlength="30" autocomplete="off">
-        </form>
+        <div id="footer">
 
+            <button onclick="ready()" style="display: block; width: 100%;">준비하기</button>
+
+            <div id="footer-chat">
+
+            </div>
+
+            <form id="chatting">
+                <input type="text" id="input-chat" maxlength="30" autocomplete="off">
+            </form>
+
+        </div>
+        
     </div>
-
+    
+    <div id="InGameFrame" style="display: none;">
+    
+        <h2>인게임 화면입니다</h2>
+    
+    </div>
 
     <div id="snackbar"></div>
 </body>

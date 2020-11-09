@@ -3,21 +3,24 @@ var player_count = 0; // 접속했었던 플레이어 수
 var joined = new Array(); // 자신을 제외한 나머지 플레이어들 객체
 var my; // 자신 객체
 
-var isStarted = 0 // 게임이 시작했는지
+var isStarted = false // 게임이 시작했는지
 
 var disconnectCode = 0;
 
+var noticeThread;
 
 function notice(msg) {
     // Get the snackbar DIV
     var x = document.getElementById("snackbar");
-    x.innerText = msg;
+    x.innerHTML = msg;
   
     // Add the "show" class to DIV
-    x.className = "show";
+    if(x.className != "show")
+        x.className = "show";
   
-    // After 3 seconds, remove the show class from DIV
-    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 5000);
+    // After 5 seconds, remove the show class from DIV
+    clearTimeout(noticeThread)
+    noticeThread = setTimeout(function(){ x.className = x.className.replace("show", "hide"); }, 5000);
 }
 
 function send(obj) {
@@ -57,6 +60,25 @@ function joinGame() {
         var data = JSON.parse(JSON.parse(a.data).data);
         console.log(data);
         switch(type) {
+                
+            case "waitTostart":
+                notice(data + "초 후 게임이 시작됩니다!")
+                break;
+                
+            case "startgame":
+                isStarted = true;
+                console.log("Game Started!")
+                notice("<b style='color:yellow;'>게임 시작!</b>")
+                InGame();
+                break;
+                
+            case "started":
+                isStarted = data;
+                console.log("isStarted " + isStarted)
+                if(isStarted)
+                    InGame();
+                break;
+                
             
             case "kick":
                 disconnectCode = data;
@@ -65,7 +87,7 @@ function joinGame() {
             case "chat":
                 appendChat(data);
                 break;
-        
+                
             case "build":
                 $("#buildspan").text("Build. " + data);
                 break;
@@ -93,6 +115,18 @@ function joinGame() {
         }
     }
 
+}
+
+function InGame() {
+    $("#QueueFrame").hide();
+    $("#InGameFrame").show();
+    
+    //TODO 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
+}
+
+function BackToQueue() {
+    $("#QueueFrame").show();
+    $("#InGameFrame").hide();   
 }
 
 function addPlayer(player)  { // 플레이어 추가
