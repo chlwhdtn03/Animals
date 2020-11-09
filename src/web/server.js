@@ -9,6 +9,8 @@ var disconnectCode = 0;
 
 var noticeThread;
 
+var camera = new Camera(0,0);
+
 function notice(msg) {
     // Get the snackbar DIV
     var x = document.getElementById("snackbar");
@@ -120,6 +122,25 @@ function joinGame() {
 function InGame() {
     $("#QueueFrame").hide();
     $("#InGameFrame").show();
+
+    var canvas = document.getElementById("InGameCanvas");
+    canvas.focus();
+    var ctx = canvas.getContext("2d");
+
+    function loop(timestamp) {
+
+
+
+        ctx.beginPath();
+        ctx.rect(my.x,my.y,1,1);
+        ctx.fillStyle = "black";
+        ctx.fill();
+        ctx.closePath();
+
+        window.requestAnimationFrame(loop);
+    }
+    window.requestAnimationFrame(loop);
+
     
     //TODO 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
 }
@@ -238,6 +259,14 @@ function appendChat(chat) {
 
 $(function() {
 
+    $("canvas").keydown(function (key) {
+        console.log(key);
+    });
+
+    $("canvas").keyup(function (key) {
+        console.log(key);
+    });
+
     $("#intro").submit(function(event) {
         event.preventDefault();
         var userName = $("#intro-name").val().trim();
@@ -258,6 +287,11 @@ $(function() {
     });
 
 });
+
+function Camera(x, y) {
+    this.x = x;
+    this.y = y;
+}
 
 function Packet(type, data) {
     this.type = type;

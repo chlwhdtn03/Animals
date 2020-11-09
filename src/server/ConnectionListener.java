@@ -70,7 +70,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					Log.info(readyer + "가 준비했습니다.");
 					sendAll(new AnimalsPacket("ready", new Ready(readyer)));
 					
-					if(isAllReady(2)) { // 2명 이상 이고 모두 레디 눌렀을때
+					if(isAllReady(Animals.MIN_PLAYER)) { // 2명 이상 이고 모두 레디 눌렀을때
 						if(Animals.isStarted)
 							return;
 						

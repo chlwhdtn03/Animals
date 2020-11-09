@@ -16,8 +16,10 @@ import util.Log;
 public class Animals {
 	/** 웹 포트 */
 	public static final int port = 80;
+	
 	public static int build;
 	public static AnimalsGUI gui;
+	public static final int MIN_PLAYER = 1;
 	
 	/** 중요 데이터 */
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
