@@ -3,6 +3,8 @@ var player_count = 0; // 접속했었던 플레이어 수
 var joined = new Array(); // 자신을 제외한 나머지 플레이어들 객체
 var my; // 자신 객체
 
+var nowPressed = new Array();
+
 var isStarted = false // 게임이 시작했는지
 
 var disconnectCode = 0;
@@ -10,6 +12,12 @@ var disconnectCode = 0;
 var noticeThread;
 
 var camera = new Camera(0,0);
+
+const VK_W = 87;
+const VK_A = 65;
+const VK_S = 83;
+const VK_D = 68;
+const VK_SPACE = 32;
 
 function notice(msg) {
     // Get the snackbar DIV
@@ -124,20 +132,35 @@ function InGame() {
     $("#InGameFrame").show();
 
     var canvas = document.getElementById("InGameCanvas");
-    canvas.focus();
+    $("#InGameFrame").focus();
     var ctx = canvas.getContext("2d");
 
     function loop(timestamp) {
 
+        // INPUT
+        if(nowPressed.includes(VK_W))
+            if(my.y > 0)
+                my.y -= 1;
 
+        if(nowPressed.includes(VK_S))
+            my.y += 1;
 
-        ctx.beginPath();
-        ctx.rect(my.x,my.y,1,1);
-        ctx.fillStyle = "black";
-        ctx.fill();
-        ctx.closePath();
+        if(nowPressed.includes(VK_A))
+            if(my.x > 0)
+                my.x -= 1;  
 
-        window.requestAnimationFrame(loop);
+        if(nowPressed.includes(VK_D))
+            my.x += 1;
+
+        // GRAPHIC
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.drawImage(MAP_FIELD, my.x, my.y, my.x+canvas.width, my.y+canvas.height, 0, 0, my.x+canvas.width, my.y+canvas.height);
+  
+
+        if(isStarted)
+            window.requestAnimationFrame(loop);
     }
     window.requestAnimationFrame(loop);
 
@@ -168,6 +191,20 @@ function removePlayer(player)  { // 플레이어 제거
 }
 
 function checkReady(name) {
+    
+    // My Ready Button
+    if(name == my.name) {
+        if(my.ready) {
+            $("#btn-ready").css("background-color", "green");
+            $("#btn-ready").html("준비완료!");
+        } else {
+            $("#btn-ready").css("background-color", "steelblue");
+            $("#btn-ready").html("준비하기");
+        }
+    }
+        
+
+    // PlayerBox
     if(getPlayer(name).ready) {
         getPlayerbox(name).style.backgroundColor = '#F29494';
         getPlayerboxImage(name).getElementsByTagName("img")[0].style.backgroundColor = '#f294aa';
@@ -251,7 +288,7 @@ function deletePlayerbox(name) {
 function appendChat(chat) {
     var rootp = document.createElement("span");
     rootp.style.display = "block";
-    rootp.innerText = chat.name + " > " + chat.message;
+    rootp.innerText = "<"+ chat.name + "> " + chat.message;
     var chatdiv = document.getElementById("footer-chat");
     chatdiv.appendChild(rootp);
     chatdiv.scrollTop = chatdiv.scrollHeight;
@@ -259,12 +296,21 @@ function appendChat(chat) {
 
 $(function() {
 
-    $("canvas").keydown(function (key) {
-        console.log(key);
+    $("#intro-name").focus();
+
+    $("#InGameFrame").keydown(function (event) {
+        if(nowPressed.includes(event.keyCode) == false) {
+            nowPressed.push(event.keyCode)
+        }
+        console.log(event.keyCode);
     });
 
-    $("canvas").keyup(function (key) {
-        console.log(key);
+    $("#InGameFrame").keyup(function (event) {
+        if(nowPressed.includes(event.keyCode) == true) {
+            const idx = nowPressed.indexOf(event.keyCode);
+            nowPressed.splice(idx, 1)
+        }
+        console.log(event.keyCode);
     });
 
     $("#intro").submit(function(event) {
@@ -323,3 +369,17 @@ function findPlayer (name) { // 닉네임을 가지고 joined배열에서 플레
         }
     }
 }
+
+
+// INIT IMAGE
+
+var MAP_FIELD = new Image();
+var MAP_DESERT = new Image();
+var MAP_SNOW = new Image();
+
+MAP_FIELD.src = "./map/field.png"
+
+// CHARACTER IMAGE
+
+
+// ITEM IMAGE

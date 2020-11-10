@@ -59,7 +59,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				
 			case "chat":
 				Chat chat = gson.fromJson(gson.toJson(packet.getData()), Chat.class);
-				Log.info(chat.getName() + " > " + chat.getMessage());
+				Log.info("<" + chat.getName() + "> " + chat.getMessage());
 				sendAll(new AnimalsPacket("chat", chat));
 				break;
 				
@@ -105,7 +105,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						
 						Thread tempThread = new Thread(() -> {
 							for(int i = 5; i > 0; i--) {
-								Log.info("게임 시작 대기중...");
+								Log.info(i + "초 후 게임 시작...");
 								sendAll(new AnimalsPacket("waitTostart", i)); // 게임 시작 전 카운트 다운
 								try {
 									Thread.sleep(1000);
