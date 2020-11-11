@@ -156,8 +156,9 @@ function InGame() {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        ctx.drawImage(MAP_FIELD, my.x, my.y, my.x+canvas.width, my.y+canvas.height, 0, 0, my.x+canvas.width, my.y+canvas.height);
+        ctx.drawImage(MAP_FIELD, my.x, my.y, (my.x+canvas.width)*4, (my.y+canvas.height)*4, 0, 0, my.x+canvas.width, my.y+canvas.height);
   
+        ctx.drawImage(ENTITY_HORSE, my.x, my.y, (my.x+canvas.width)*4, (my.y+canvas.height)*4, 0, 0, 0, 0);
 
         if(isStarted)
             window.requestAnimationFrame(loop);
@@ -379,7 +380,11 @@ var MAP_SNOW = new Image();
 
 MAP_FIELD.src = "./map/field.png"
 
-// CHARACTER IMAGE
+// ENTITY IMAGE
+
+var ENTITY_HORSE = new Image();
+
+ENTITY_HORSE.src = "./resource/entity/horse.png"
 
 
 // ITEM IMAGE
