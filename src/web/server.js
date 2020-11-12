@@ -137,10 +137,10 @@ function InGame() {
     $("#InGameFrame").focus();
     var ctx = canvas.getContext("2d");
     
-    ctx.canvas.width  = window.innerWidth;
+    ctx.canvas.width  = 1920;
   	ctx.canvas.height = window.innerHeight;
     
-    var dx=0, dy=0, x=0, y=0;
+    var dx=0, dy=0;
     
     function loop(timestamp) {
 
@@ -152,7 +152,7 @@ function InGame() {
         		my.y -= 1
         	}
         
-            if(camera.y > 0) {
+            if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
                 camera.y -= 1
             }
             
@@ -160,9 +160,9 @@ function InGame() {
 
         if(nowPressed.includes(VK_S)) {
             dy = +1;
-            if(my.y < MAP_FIELD.height)
+            if(my.y < MAP_FIELD.height-150)
             	my.y += 1;
-            if(my.centerY > canvas.height/2)
+            if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
             	camera.y += 1;
         }
 
@@ -171,7 +171,7 @@ function InGame() {
        		if(my.x > 0)
        			my.x -= 1
             
-            if(camera.x > 0 && my.x < MAP_FIELD.width-(canvas.width/2))
+            if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
                 camera.x -= 1;  
                 
                 
@@ -204,15 +204,30 @@ function InGame() {
   		
   		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
   			ctx.save();
-        	ctx.drawImage(ENTITY_HORSE, my.centerX < canvas.width/2 ? my.x : (camera.x+canvas.width < MAP_FIELD.width) ? (canvas.width/2)-150/2 : my.x-camera.x, my.centerY < (canvas.height/2) ? my.y : (canvas.height/2)-150/2, 150, 150);
+        	ctx.drawImage(ENTITY_HORSE, 
+        		my.centerX < canvas.width/2 ?
+        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
+        			  (canvas.width/2)-150/2 : my.x-camera.x,
+        		my.centerY < (canvas.height/2) ?
+        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+        			  (canvas.height/2)-150/2 : my.y-camera.y,
+        		150, 150);
         	ctx.restore();
         } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
         	ctx.save();
         	ctx.scale(-1,1);
-        	console.log(camera.x+canvas.width < MAP_FIELD.width);
-        	ctx.drawImage(ENTITY_HORSE, my.centerX < canvas.width/2 ? -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ? -(canvas.width/2)-150/2 : -(my.x-camera.x)-150, my.centerY < canvas.height/2 ? my.y : (canvas.height/2)-150/2, 150, 150);
+        	ctx.drawImage(ENTITY_HORSE,
+        		 my.centerX < canvas.width/2 ?
+        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
+        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
+        		 my.centerY < canvas.height/2 ?
+        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
+        		 150, 150);
         	ctx.restore();
 		}
+		
+		ctx.drawImage(map(ctx), 50, 50, 200, 200*MAP_FIELD.height/MAP_FIELD.width)
         if(isStarted)
             window.requestAnimationFrame(loop);
     }
@@ -222,14 +237,34 @@ function InGame() {
     //TODO 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
 }
 
-function scaleIt(source,scaleFactor){
+function map(ctx){
 	var c=document.createElement('canvas');
 	var c2=c.getContext('2d');
-	var w=source.width*scaleFactor;
-	var h=source.height*scaleFactor;
-	c.width=w;
-	c.height=h;
-	c2.drawImage(source,0,0,w,h);
+	c2.canvas.width =  MAP_FIELD.width
+	c2.canvas.height = MAP_FIELD.height
+	
+	
+	c2.globalAlpha = 0.6;
+	
+	c2.drawImage(MAP_FIELD,0,0,c.width,c.height);
+	
+	
+	c2.strokeStyle = 'green'
+	c2.lineWidth = 30
+	c2.strokeRect(camera.x, camera.y, ctx.canvas.width, ctx.canvas.height);
+	
+	c2.strokeStyle = 'white'
+	c2.lineWidth = 30
+	c2.strokeRect(0, 0, c2.canvas.width, c2.canvas.height);
+	
+	c2.beginPath()
+	c2.lineWidth = 50
+	c2.strokeStyle = 'red'
+	c2.arc(my.centerX, my.centerY, 50, 0, 2 * Math.PI);
+	c2.fill()
+	c2.closePath()
+	
+	
 	return(c);
 }
 
