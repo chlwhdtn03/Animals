@@ -17,7 +17,7 @@ import packet.AnimalsPacket;
 import util.Log;
 
 public class ConnectionListener implements Handler<ServerWebSocket> {
-
+	
 	@Override
 	public void handle(ServerWebSocket ws) {
 
@@ -73,6 +73,9 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					if(isAllReady(Animals.MIN_PLAYER)) { // 2명 이상 이고 모두 레디 눌렀을때
 						if(Animals.isStarted)
 							return;
+						if(Animals.isIniting)
+							return;
+						Animals.isIniting = true;
 						
 						int temp;
 						Random random = new Random();
@@ -104,7 +107,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						}
 						
 						Thread tempThread = new Thread(() -> {
-							for(int i = 5; i > 0; i--) {
+							for(int i = 3; i > 0; i--) {
 								Log.info(i + "초 후 게임 시작...");
 								sendAll(new AnimalsPacket("waitTostart", i)); // 게임 시작 전 카운트 다운
 								try {
@@ -115,6 +118,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							}
 							Log.info("게임이 시작되었습니다.");
 							Animals.isStarted = true; // 게임 시작 기록
+							Animals.isIniting = false;
 							sendAll(new AnimalsPacket("startgame", 1)); // 전원에게 게임 시작
 						});
 						tempThread.start();

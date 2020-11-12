@@ -132,34 +132,87 @@ function InGame() {
     $("#InGameFrame").show();
 
     var canvas = document.getElementById("InGameCanvas");
+   
+    
     $("#InGameFrame").focus();
     var ctx = canvas.getContext("2d");
-
+    
+    ctx.canvas.width  = window.innerWidth;
+  	ctx.canvas.height = window.innerHeight;
+    
+    var dx=0, dy=0, x=0, y=0;
+    
     function loop(timestamp) {
 
         // INPUT
-        if(nowPressed.includes(VK_W))
-            if(my.y > 0)
-                my.y -= 1;
+        if(nowPressed.includes(VK_W)) {
+        	dy = -1;
+        	
+        	if(my.y > 0) {
+        		my.y -= 1
+        	}
+        
+            if(camera.y > 0) {
+                camera.y -= 1
+            }
+            
+        }
 
-        if(nowPressed.includes(VK_S))
-            my.y += 1;
+        if(nowPressed.includes(VK_S)) {
+            dy = +1;
+            if(my.y < MAP_FIELD.height)
+            	my.y += 1;
+            if(my.centerY > canvas.height/2)
+            	camera.y += 1;
+        }
 
-        if(nowPressed.includes(VK_A))
-            if(my.x > 0)
-                my.x -= 1;  
+        if(nowPressed.includes(VK_A)) {
+        	dx = -1;
+       		if(my.x > 0)
+       			my.x -= 1
+            
+            if(camera.x > 0 && my.x < MAP_FIELD.width-(canvas.width/2))
+                camera.x -= 1;  
+                
+                
+        }
 
-        if(nowPressed.includes(VK_D))
-            my.x += 1;
+        if(nowPressed.includes(VK_D)) {
+        	dx = +1;
+        	if(my.x < MAP_FIELD.width-150)
+            	my.x += 1
+            if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
+            	camera.x += 1;
+            
+        }
+        
+        my.centerX = my.x + 150/2;
+        my.centerY = my.y + 150/2;
 
         // GRAPHIC
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.drawImage(MAP_FIELD, my.x, my.y, (my.x+canvas.width)*4, (my.y+canvas.height)*4, 0, 0, my.x+canvas.width, my.y+canvas.height);
-  
-        ctx.drawImage(ENTITY_HORSE, my.x, my.y, (my.x+canvas.width)*4, (my.y+canvas.height)*4, 0, 0, 0, 0);
 
+		
+
+		ctx.save();
+        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
+  		ctx.restore();
+  		
+  		
+  	
+  		
+  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
+  			ctx.save();
+        	ctx.drawImage(ENTITY_HORSE, my.centerX < canvas.width/2 ? my.x : (camera.x+canvas.width < MAP_FIELD.width) ? (canvas.width/2)-150/2 : my.x-camera.x, my.centerY < (canvas.height/2) ? my.y : (canvas.height/2)-150/2, 150, 150);
+        	ctx.restore();
+        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
+        	ctx.save();
+        	ctx.scale(-1,1);
+        	console.log(camera.x+canvas.width < MAP_FIELD.width);
+        	ctx.drawImage(ENTITY_HORSE, my.centerX < canvas.width/2 ? -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ? -(canvas.width/2)-150/2 : -(my.x-camera.x)-150, my.centerY < canvas.height/2 ? my.y : (canvas.height/2)-150/2, 150, 150);
+        	ctx.restore();
+		}
         if(isStarted)
             window.requestAnimationFrame(loop);
     }
@@ -167,6 +220,17 @@ function InGame() {
 
     
     //TODO 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
+}
+
+function scaleIt(source,scaleFactor){
+	var c=document.createElement('canvas');
+	var c2=c.getContext('2d');
+	var w=source.width*scaleFactor;
+	var h=source.height*scaleFactor;
+	c.width=w;
+	c.height=h;
+	c2.drawImage(source,0,0,w,h);
+	return(c);
 }
 
 function BackToQueue() {
@@ -349,6 +413,8 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
+    this.centerX = 0;
+    this.centerY = 0;
     this.animal = ""; // 어떤 동물인지
     this.ready = false; // 준비했는지 여부  
     this.leaved = false; // 나갔는지 여부
@@ -384,7 +450,7 @@ MAP_FIELD.src = "./map/field.png"
 
 var ENTITY_HORSE = new Image();
 
-ENTITY_HORSE.src = "./resource/entity/horse.png"
+ENTITY_HORSE.src = "./resource/entity/crockdail.png"
 
 
 // ITEM IMAGE

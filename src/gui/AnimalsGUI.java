@@ -85,11 +85,20 @@ public class AnimalsGUI extends JFrame {
 			InetAddress addr;
 			for (; n.hasMoreElements();) {
 				e = n.nextElement();
+				
+				if(e.isLoopback()) // 루프백 주소 필요 X 
+					continue;
+				if(e.isVirtual()) // 가상환경 주소 필요 X
+					continue;
+				
 				a = e.getInetAddresses();
 				for (; a.hasMoreElements();) {
 					addr = a.nextElement();
+					if(addr.isLinkLocalAddress())
+						continue;
 					Log.info(e.getDisplayName() + " - " + addr.getHostAddress());		
 					addresslist.add(addr.getHostAddress());
+					
 				}
 			}
 			

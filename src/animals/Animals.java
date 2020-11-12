@@ -24,6 +24,7 @@ public class Animals {
 	/** 중요 데이터 */
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
 	public static boolean isStarted = false; // 게임이 시작됬는지
+	public static boolean isIniting = false; // 게임이 시작 준비에 들어갔는지.(게임이 시작될땐 false로 바뀜)
 	
 	public static void main(String[] args) {
 		loadBuildCount();
