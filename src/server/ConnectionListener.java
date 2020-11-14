@@ -63,6 +63,21 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				sendAll(new AnimalsPacket("chat", chat));
 				break;
 				
+			case "move":
+				Player targetplayer = gson.fromJson(gson.toJson(packet.getData()), Player.class);
+				if(isAlreadyName(targetplayer.getName())) {
+					Player player = getPlayer(targetplayer.getName());
+					player.setX(targetplayer.getX());
+					player.setY(targetplayer.getY());
+					sendAll(new AnimalsPacket("move", player));
+				} else { // 비정상적인 접근자
+					Log.warning(ws.remoteAddress() + "에서 비정상적인 움직임을 시도했습니다.");
+					send(ws, new AnimalsPacket("kick", 2));
+					ws.close();
+					return;
+				}
+				break;
+				
 			case "ready":
 				try {
 					String readyer = (String) packet.getData();

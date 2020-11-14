@@ -64,13 +64,16 @@ function joinGame() {
                 break;
             case 1:
                 notice("중복된 닉네임을 사용했습니다.<br>F5를 눌러 다시 접속하세요.")
+                break;      
+            case 2:
+                notice("<span style='color:red;'>뭐해?</span>")
+                break;
         }
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
         var type = JSON.parse(a.data).type;
         var data = JSON.parse(JSON.parse(a.data).data);
-        console.log(data);
         switch(type) {
                 
             case "waitTostart":
@@ -124,6 +127,11 @@ function joinGame() {
                 getPlayer(data.name).animal = data.animal;
                 getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
+                
+            case "move":
+                getPlayer(data.name).x = data.x;
+                getPlayer(data.name).y = data.y;
+                break;
         }
     }
 
@@ -154,7 +162,8 @@ function InGame() {
     
     function loop(timestamp) {
     
-
+		dx = 0;
+		dy = 0;
     
         // INPUT
         if(nowPressed.includes(VK_W)) {
@@ -222,6 +231,9 @@ function InGame() {
 	        my.centerX = my.x + 150/2;
 	        my.centerY = my.y + 150/2;
         }
+        
+        if((dx || dy) && !isObserver)
+        	socket.send(JSON.stringify(new Packet("move", my)));
 
         // GRAPHIC
 
@@ -233,31 +245,46 @@ function InGame() {
         ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
   		ctx.restore();
   		
-  		// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
-  		if(!isObserver) {
-	  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
-	  			ctx.save();
-	        	ctx.drawImage(ENTITY_HORSE, 
-	        		my.centerX < canvas.width/2 ?
-	        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
-	        			  (canvas.width/2)-150/2 : my.x-camera.x,
-	        		my.centerY < (canvas.height/2) ?
-	        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-	        			  (canvas.height/2)-150/2 : my.y-camera.y,
-	        		150, 150);
-	        	ctx.restore();
-	        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
-	        	ctx.save();
-	        	ctx.scale(-1,1);
-	        	ctx.drawImage(ENTITY_HORSE,
-	        		 my.centerX < canvas.width/2 ?
-	        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
-	        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
-	        		 my.centerY < canvas.height/2 ?
-	        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-	        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
-	        		 150, 150);
-	        	ctx.restore();
+  		
+		// 캐릭터 그리기
+		for(var p of joined) {
+			if(p.name == my.name) {
+				
+				// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
+		  		if(!isObserver) {
+			  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
+			  			ctx.save();
+			        	ctx.drawImage(ENTITY_HORSE, 
+			        		my.centerX < canvas.width/2 ?
+			        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
+			        			  (canvas.width/2)-150/2 : my.x-camera.x,
+			        		my.centerY < (canvas.height/2) ?
+			        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+			        			  (canvas.height/2)-150/2 : my.y-camera.y,
+			        		150, 150);
+			        	ctx.restore();
+			        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
+			        	ctx.save();
+			        	ctx.scale(-1,1);
+			        	ctx.drawImage(ENTITY_HORSE,
+			        		 my.centerX < canvas.width/2 ?
+			        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
+			        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
+			        		 my.centerY < canvas.height/2 ?
+			        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+			        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
+			        		 150, 150);
+			        	ctx.restore(); 
+					}
+				}
+				
+				continue; // 내꺼 다 그렸으면 continue해서 다른얘 그리러
+			} else if(p.animal != "") { // 관전 모드인지 확인. 관전 아니면 그려주기
+				if(p.x < camera.x-150 || p.x > camera.x+canvas.width)
+					continue;
+				if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
+					continue;
+				ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
 			}
 		}
 		
@@ -267,7 +294,6 @@ function InGame() {
 		ctx.drawImage(map(ctx), 50, 50, 200, 200*MAP_FIELD.height/MAP_FIELD.width)
 		
 		
-  		notice(Math.round(1/(timestamp-temp)*1000))    
 		temp = timestamp
 		
     	if(isStarted)
@@ -512,18 +538,6 @@ function Chat(name, message) { // 채팅 객체
     this.message = message; // 나갔는지 여부
 }
 
-function findPlayer (name) { // 닉네임을 가지고 joined배열에서 플레이어 객체 찾기 (닉네임이 자신일 경우 myUser 반환)
-    if (name == myUser.name)
-        return myUser;
-    for (var i = 0; i < id; i++) {
-        if (joined[i].leaved == false) {
-            if (joined[i].name == name) {
-                return joined[i];
-            }
-        }
-    }
-}
-
 
 // INIT IMAGE
 
@@ -532,12 +546,15 @@ var MAP_DESERT = new Image();
 var MAP_SNOW = new Image();
 
 MAP_FIELD.src = "./map/field.png"
+MAP_DESERT.src = "./map/desert.png"
+MAP_SNOW.src = "./map/ice.png"
 
 // ENTITY IMAGE
 
 var ENTITY_HORSE = new Image();
+var ENTITY_CROCKDAIL = new Image();
 
 ENTITY_HORSE.src = "./resource/entity/horse.png"
-
+ENTITY_HORSE.src = "./resource/entity/crockdail.png"
 
 // ITEM IMAGE
