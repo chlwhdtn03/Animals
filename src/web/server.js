@@ -146,13 +146,13 @@ function InGame() {
    
     
     $("#InGameFrame").focus();
-    var ctx = canvas.getContext("2d");
+    var ctx = canvas.getContext("2d", {alpha: false});
     
     ctx.canvas.width  = 1920;
   	ctx.canvas.height = window.innerHeight;
   	
   	
-    mapfont_size = MAP_FIELD.width / 10
+    mapfont_size = 200 / 10
     
     var isObserver = my.animal == "";
     if(isObserver) {
@@ -252,13 +252,8 @@ function InGame() {
 		if(shouldRender) {
 			frames_count++
 	        ctx.clearRect(0, 0, canvas.width, canvas.height);
-	
-			
-	
-			ctx.save();
+
 	        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
-	  		ctx.restore();
-	  		
 	  		
 			// 캐릭터 그리기
 			for(var p of joined) {
@@ -305,7 +300,7 @@ function InGame() {
 			
 			
 			
-			ctx.drawImage(map(ctx), 50, 50, 200, 200*MAP_FIELD.height/MAP_FIELD.width)
+			ctx.drawImage(map(ctx),50,50)
 			
 		}
 		
@@ -331,36 +326,38 @@ var temp = 0;
 function map(ctx){
 	var c=document.createElement('canvas');
 	var c2=c.getContext('2d');
-	c2.canvas.width =  MAP_FIELD.width
-	c2.canvas.height = MAP_FIELD.height
 	
+	//c2.canvas.width =  MAP_FIELD.width
+	//c2.canvas.height = MAP_FIELD.height
+	c2.canvas.width = 200
+	c2.canvas.height= Math.floor(200*MAP_FIELD.height/MAP_FIELD.width)
+	
+	var scale = 200 / MAP_FIELD.width
 	
 	c2.globalAlpha = 0.6; // 맵 투명도
 	
 	c2.drawImage(MAP_FIELD,0,0,c.width,c.height);
 	
+	c2.strokeStyle = 'darkgreen'
+	c2.lineWidth = 2
+	c2.strokeRect(camera.x*scale, camera.y*scale, ctx.canvas.width*scale, ctx.canvas.height*scale);
 	
-	c2.strokeStyle = 'green'
-	c2.lineWidth = 30
-	c2.strokeRect(camera.x, camera.y, ctx.canvas.width, ctx.canvas.height);
-	
-	c2.strokeStyle = 'white'
-	c2.lineWidth = 30
+	c2.strokeStyle = 'white' 
+	c2.lineWidth = 5
 	c2.strokeRect(0, 0, c2.canvas.width, c2.canvas.height);
 	
 	
 	if(my.animal != "") { // 내가 관전자가 아닌 플레이어일 경우 지도에 위치 표시	
 		c2.beginPath()
-		c2.lineWidth = 50
+		c2.lineWidth = 2
 		c2.strokeStyle = 'red'
-		c2.arc(my.centerX, my.centerY, 50, 0, 2 * Math.PI);
+		c2.arc(my.centerX*scale, my.centerY*scale, 2, 0, 2 * Math.PI);
 		c2.fill()
 		c2.closePath()
 	} else { // 관전자일 경우
 		c2.font = mapfont_size + "px bold";
-		c2.fillText("관전 모드", 30,c.height-mapfont_size/5)
+		c2.fillText("관전 모드", 5,c.height-mapfont_size/5)
 	}
-	
 	
 	return(c);
 }
