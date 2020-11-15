@@ -21,6 +21,7 @@ const VK_SPACE = 32;
 
 var mapfont_size = 0;
 
+var ticks, frames_count, delta = 0, tick_rate = 1000 / 60
 function notice(msg) {
     // Get the snackbar DIV
     var x = document.getElementById("snackbar");
@@ -159,142 +160,161 @@ function InGame() {
     }
     
     var dx=0, dy=0;
-    
+    var lastTimer = performance.now()
+    temp = performance.now()
     function loop(timestamp) {
-    
+		
+		delta += (timestamp - temp) / tick_rate;
+		temp = timestamp
+		var shouldRender = true;
+		
 		dx = 0;
 		dy = 0;
+		
+	    if(nowPressed.includes(VK_W)) {
+	       	if(!isObserver) { // 플레이어
+		       	dy = -1;
+		      	
+		       	if(my.y > 0) {
+		       		my.y -= 1
+		       	}
+		        if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
+		            camera.y -= 1
+			    }
+		    } else { // 관전자
+		        
+		      	if(camera.y > 0) {
+		       		camera.y -= 4;
+		       	}
+		        
+		    }
+	            
+	    }
+	
+	        if(nowPressed.includes(VK_S)) {
+	        	if(!isObserver) { // 플레이어
+		            dy = +1;
+		            if(my.y < MAP_FIELD.height-150)
+		            	my.y += 1;
+		            if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
+		            	camera.y += 1;
+	            } else { // 관전자
+		            if(camera.y + canvas.height < MAP_FIELD.height)
+			            camera.y += 1*4;
+	            }
+	        }
+	
+	        if(nowPressed.includes(VK_A)) {
+	        	if(!isObserver) { // 플레이어
+		        	dx = -1;
+		       		if(my.x > 0)
+		       			my.x -= 1;
+		            
+		            if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
+		                camera.x -= 1;  
+	            } else { // 관전자
+	           		if(camera.x > 0)
+		                camera.x -= 1*4;
+	            }
+	                
+	        }
+	
+	        if(nowPressed.includes(VK_D)) {
+	        	if(!isObserver) {
+		        	dx = +1;
+		        	if(my.x < MAP_FIELD.width-150)
+		            	my.x += 1
+		            if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
+		            	camera.x += 1
+	            } else {
+	            	if(camera.x + canvas.width < MAP_FIELD.width)
+	            		camera.x += 1*4;
+	            }
+	        }
+	        
+	        if(!isObserver) {
+		        my.centerX = my.x + 150/2;
+		        my.centerY = my.y + 150/2;
+	        }
     
         // INPUT
-        if(nowPressed.includes(VK_W)) {
-        	if(!isObserver) { // 플레이어
-	        	dy = -1;
-	        	
-	        	if(my.y > 0) {
-	        		my.y -= 1
-	        	}
-	            if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
-	                camera.y -= 1
-	            }
-	        } else { // 관전자
-	        
-	        	if(camera.y > 0) {
-	        		camera.y -= 4;
-	        	}
-	        
-	        }
-            
-        }
-
-        if(nowPressed.includes(VK_S)) {
-        	if(!isObserver) { // 플레이어
-	            dy = +1;
-	            if(my.y < MAP_FIELD.height-150)
-	            	my.y += 1;
-	            if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
-	            	camera.y += 1;
-            } else { // 관전자
-	            if(camera.y + canvas.height < MAP_FIELD.height)
-		            camera.y += 4;
-            }
-        }
-
-        if(nowPressed.includes(VK_A)) {
-        	if(!isObserver) { // 플레이어
-	        	dx = -1;
-	       		if(my.x > 0)
-	       			my.x -= 1
-	            
-	            if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
-	                camera.x -= 1;  
-            } else { // 관전자
-           		if(camera.x > 0)
-	                camera.x -= 4;
-            }
-                
-        }
-
-        if(nowPressed.includes(VK_D)) {
-        	if(!isObserver) {
-	        	dx = +1;
-	        	if(my.x < MAP_FIELD.width-150)
-	            	my.x += 1
-	            if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
-	            	camera.x += 1;
-            } else {
-            	if(camera.x + canvas.width < MAP_FIELD.width)
-            		camera.x += 4;
-            }
-        }
-        
-        if(!isObserver) {
-	        my.centerX = my.x + 150/2;
-	        my.centerY = my.y + 150/2;
-        }
-        
-        if((dx || dy) && !isObserver)
-        	socket.send(JSON.stringify(new Packet("move", my)));
+        while(delta >= 1) {
+            ticks++;
+	       	if((dx || dy) && !isObserver)
+	        	socket.send(JSON.stringify(new Packet("move", my)));
+	        delta -= 1;
+	        shouldRender = true;
+			
+	    }
 
         // GRAPHIC
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-		
-
-		ctx.save();
-        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
-  		ctx.restore();
-  		
-  		
-		// 캐릭터 그리기
-		for(var p of joined) {
-			if(p.name == my.name) {
-				
-				// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
-		  		if(!isObserver) {
-			  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
-			  			ctx.save();
-			        	ctx.drawImage(ENTITY_HORSE, 
-			        		my.centerX < canvas.width/2 ?
-			        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
-			        			  (canvas.width/2)-150/2 : my.x-camera.x,
-			        		my.centerY < (canvas.height/2) ?
-			        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-			        			  (canvas.height/2)-150/2 : my.y-camera.y,
-			        		150, 150);
-			        	ctx.restore();
-			        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
-			        	ctx.save();
-			        	ctx.scale(-1,1);
-			        	ctx.drawImage(ENTITY_HORSE,
-			        		 my.centerX < canvas.width/2 ?
-			        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
-			        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
-			        		 my.centerY < canvas.height/2 ?
-			        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-			        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
-			        		 150, 150);
-			        	ctx.restore(); 
+		if(shouldRender) {
+			frames_count++
+	        ctx.clearRect(0, 0, canvas.width, canvas.height);
+	
+			
+	
+			ctx.save();
+	        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
+	  		ctx.restore();
+	  		
+	  		
+			// 캐릭터 그리기
+			for(var p of joined) {
+				if(p.name == my.name) {
+					
+					// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
+			  		if(!isObserver) {
+				  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
+				  			ctx.save();
+				        	ctx.drawImage(ENTITY_HORSE, 
+				        		my.centerX < canvas.width/2 ?
+				        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
+				        			  (canvas.width/2)-150/2 : my.x-camera.x,
+				        		my.centerY < (canvas.height/2) ?
+				        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+				        			  (canvas.height/2)-150/2 : my.y-camera.y,
+				        		150, 150);
+				        	ctx.restore();
+				        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
+				        	ctx.save();
+				        	ctx.scale(-1,1);
+				        	ctx.drawImage(ENTITY_HORSE,
+				        		 my.centerX < canvas.width/2 ?
+				        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
+				        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
+				        		 my.centerY < canvas.height/2 ?
+				        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
+				        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
+				        		 150, 150);
+				        	ctx.restore(); 
+						}
 					}
+					
+					continue; // 내꺼 다 그렸으면 continue해서 다른얘 그리러
+				} else if(p.animal != "") { // 관전 모드인지 확인. 관전 아니면 그려주기
+					if(p.x < camera.x-150 || p.x > camera.x+canvas.width)
+						continue;
+					if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
+						continue;
+					ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
 				}
-				
-				continue; // 내꺼 다 그렸으면 continue해서 다른얘 그리러
-			} else if(p.animal != "") { // 관전 모드인지 확인. 관전 아니면 그려주기
-				if(p.x < camera.x-150 || p.x > camera.x+canvas.width)
-					continue;
-				if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
-					continue;
-				ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
 			}
+			
+			
+			
+			
+			ctx.drawImage(map(ctx), 50, 50, 200, 200*MAP_FIELD.height/MAP_FIELD.width)
+			
 		}
 		
-		
-		
-		
-		ctx.drawImage(map(ctx), 50, 50, 200, 200*MAP_FIELD.height/MAP_FIELD.width)
-		
-		
-		temp = timestamp
+		if(timestamp - lastTimer >= 1000) {
+			lastTimer += 1000
+			console.log(ticks + " Ticks," + frames_count + " frames");
+			frames_count = 0;
+			ticks = 0;
+		}
 		
     	if(isStarted)
     		requestAnimationFrame(loop);
@@ -302,7 +322,6 @@ function InGame() {
 		
     }
     window.requestAnimationFrame(loop);
-	temp = 0;
 
     
     
@@ -480,7 +499,6 @@ $(function() {
         if(nowPressed.includes(event.keyCode) == false) {
             nowPressed.push(event.keyCode)
         }
-        console.log(event.keyCode);
     });
 
     $("#InGameFrame").keyup(function (event) {
@@ -488,7 +506,6 @@ $(function() {
             const idx = nowPressed.indexOf(event.keyCode);
             nowPressed.splice(idx, 1)
         }
-        console.log(event.keyCode);
     });
 
     $("#intro").submit(function(event) {
