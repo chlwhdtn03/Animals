@@ -69,6 +69,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					Player player = getPlayer(targetplayer.getName());
 					player.setX(targetplayer.getX());
 					player.setY(targetplayer.getY());
+					player.setDirection(targetplayer.getDirection());
 					sendAll(new AnimalsPacket("move", player));
 				} else { // 비정상적인 접근자
 					Log.warning(ws.remoteAddress() + "에서 비정상적인 움직임을 시도했습니다.");

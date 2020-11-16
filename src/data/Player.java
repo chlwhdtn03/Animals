@@ -12,6 +12,7 @@ public class Player implements Serializable {
 	private ServerWebSocket ws;
 	private String name;
 	private AnimalType animal; // 동물 이름
+	private String direction;
 	private int x, y;
 	private boolean ready;
 	private boolean leaved;
@@ -61,6 +62,12 @@ public class Player implements Serializable {
 	public void setLeaved(boolean leaved) {
 		this.leaved = leaved;
 	}
+	public String getDirection() {
+		return direction;
+	}
+	public void setDirection(String direction) {
+		this.direction = direction;
+	}
 	
 	@Override
 	public String toString() {
@@ -68,6 +75,7 @@ public class Player implements Serializable {
 		obj.addProperty("name", name);
 		obj.addProperty("x", x);
 		obj.addProperty("y", y);
+		obj.addProperty("direction", direction);
 		obj.addProperty("ready", ready);
 		try {
 			obj.addProperty("animal", animal.getName());

@@ -132,6 +132,7 @@ function joinGame() {
             case "move":
                 getPlayer(data.name).x = data.x;
                 getPlayer(data.name).y = data.y;
+                getPlayer(data.name).direction = data.direction;
                 break;
         }
     }
@@ -173,13 +174,13 @@ function InGame() {
 		
 	    if(nowPressed.includes(VK_W)) {
 	       	if(!isObserver) { // 플레이어
-		       	dy = -1;
+		       	dy = -2;
 		      	
 		       	if(my.y > 0) {
-		       		my.y -= 1
+		       		my.y -= 2
 		       	}
 		        if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
-		            camera.y -= 1
+		            camera.y -= 2
 			    }
 		    } else { // 관전자
 		        
@@ -193,11 +194,11 @@ function InGame() {
 	
 	        if(nowPressed.includes(VK_S)) {
 	        	if(!isObserver) { // 플레이어
-		            dy = +1;
+		            dy = +2;
 		            if(my.y < MAP_FIELD.height-150)
-		            	my.y += 1;
+		            	my.y += 2;
 		            if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
-		            	camera.y += 1;
+		            	camera.y += 2;
 	            } else { // 관전자
 		            if(camera.y + canvas.height < MAP_FIELD.height)
 			            camera.y += 1*4;
@@ -206,12 +207,12 @@ function InGame() {
 	
 	        if(nowPressed.includes(VK_A)) {
 	        	if(!isObserver) { // 플레이어
-		        	dx = -1;
+		        	dx = -2;
 		       		if(my.x > 0)
-		       			my.x -= 1;
+		       			my.x -= 2;
 		            
 		            if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
-		                camera.x -= 1;  
+		                camera.x -= 2;  
 	            } else { // 관전자
 	           		if(camera.x > 0)
 		                camera.x -= 1*4;
@@ -221,11 +222,11 @@ function InGame() {
 	
 	        if(nowPressed.includes(VK_D)) {
 	        	if(!isObserver) {
-		        	dx = +1;
+		        	dx = +2;
 		        	if(my.x < MAP_FIELD.width-150)
-		            	my.x += 1
+		            	my.x +=2
 		            if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
-		            	camera.x += 1
+		            	camera.x += 2
 	            } else {
 	            	if(camera.x + canvas.width < MAP_FIELD.width)
 	            		camera.x += 1*4;
@@ -240,8 +241,16 @@ function InGame() {
         // INPUT
         while(delta >= 1) {
             ticks++;
-	       	if((dx || dy) && !isObserver)
+            
+	       	if((dx || dy) && !isObserver) {
+	       		if(dx < 0)
+	            	my.direction = "left";
+	            if(dx > 0)
+	            	my.direction = "right"
+	            		
 	        	socket.send(JSON.stringify(new Packet("move", my)));
+	        	
+	       	}
 	        delta -= 1;
 	        shouldRender = true;
 			
@@ -261,7 +270,7 @@ function InGame() {
 					
 					// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
 			  		if(!isObserver) {
-				  		if(dx >= 0) { // 오른쪽으로 간다면( dx가 양수일 때)
+				  		if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
 				  			ctx.save();
 				        	ctx.drawImage(ENTITY_HORSE, 
 				        		my.centerX < canvas.width/2 ?
@@ -272,7 +281,7 @@ function InGame() {
 				        			  (canvas.height/2)-150/2 : my.y-camera.y,
 				        		150, 150);
 				        	ctx.restore();
-				        } else if(dx < 0) { // 왼쪽으로 간다면( dx가 음수일 때)
+				        } else if(my.direction == "left") { // 왼쪽으로 간다면( dx가 음수일 때)
 				        	ctx.save();
 				        	ctx.scale(-1,1);
 				        	ctx.drawImage(ENTITY_HORSE,
@@ -293,7 +302,15 @@ function InGame() {
 						continue;
 					if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
 						continue;
-					ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
+					if(p.direction == "right") {
+						ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
+					} else if(p.direction == "left") {
+
+			        	ctx.save();
+			        	ctx.scale(-1,1);
+						ctx.drawImage(ENTITY_HORSE, -(p.x-camera.x)-150, p.y-camera.y, 150, 150)
+			        	ctx.restore(); 
+					}
 				}
 			}
 			
@@ -540,6 +557,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
+    this.direction = ""; // 어느 방향 쳐다보는지
     this.centerX = 0;
     this.centerY = 0;
     this.animal = ""; // 어떤 동물인지
@@ -559,16 +577,31 @@ var MAP_FIELD = new Image();
 var MAP_DESERT = new Image();
 var MAP_SNOW = new Image();
 
-MAP_FIELD.src = "./map/field.png"
+MAP_FIELD.src = "./map/desert.png"
 MAP_DESERT.src = "./map/desert.png"
 MAP_SNOW.src = "./map/ice.png"
 
 // ENTITY IMAGE
 
+var ENTITY_CHITA = new Image();
 var ENTITY_HORSE = new Image();
 var ENTITY_CROCKDAIL = new Image();
+var ENTITY_COLORED_HORSE = new Image();
+var ENTITY_HAMA = new Image();
+var ENTITY_NORU_RED = new Image();
+var ENTITY_NORU = new Image();
+var ENTITY_RION = new Image();
+var ENTITY_SMART_MONKEY = new Image();
 
+ENTITY_CHITA.src = "./resource/entity/chita.png"
 ENTITY_HORSE.src = "./resource/entity/horse.png"
-ENTITY_HORSE.src = "./resource/entity/crockdail.png"
+ENTITY_CROCKDAIL.src = "./resource/entity/crockdail.png"
+ENTITY_COLORED_HORSE.src="./resource/entity/colored_horse.png"
+ENTITY_HAMA.src="./resource/entity/hama.png"
+ENTITY_NORU_RED.src="./resource/entity/noru_red.png"
+ENTITY_NORU.src="./resource/entity/noru.png"
+ENTITY_RION.src="./resource/entity/rion.png"
+ENTITY_SMART_MONKEY.src="./resource/entity/smart_monkey.png"
+
 
 // ITEM IMAGE
