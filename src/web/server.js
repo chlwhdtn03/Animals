@@ -171,76 +171,75 @@ function InGame() {
 		
 		dx = 0;
 		dy = 0;
-		
-	    if(nowPressed.includes(VK_W)) {
-	       	if(!isObserver) { // 플레이어
-		       	dy = -2;
-		      	
-		       	if(my.y > 0) {
-		       		my.y -= 2
-		       	}
-		        if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
-		            camera.y -= 2
-			    }
-		    } else { // 관전자
-		        
-		      	if(camera.y > 0) {
-		       		camera.y -= 4;
-		       	}
-		        
-		    }
-	            
-	    }
 	
-	        if(nowPressed.includes(VK_S)) {
-	        	if(!isObserver) { // 플레이어
-		            dy = +2;
-		            if(my.y < MAP_FIELD.height-150)
-		            	my.y += 2;
-		            if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
-		            	camera.y += 2;
-	            } else { // 관전자
-		            if(camera.y + canvas.height < MAP_FIELD.height)
-			            camera.y += 1*4;
-	            }
-	        }
-	
-	        if(nowPressed.includes(VK_A)) {
-	        	if(!isObserver) { // 플레이어
-		        	dx = -2;
-		       		if(my.x > 0)
-		       			my.x -= 2;
-		            
-		            if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
-		                camera.x -= 2;  
-	            } else { // 관전자
-	           		if(camera.x > 0)
-		                camera.x -= 1*4;
-	            }
-	                
-	        }
-	
-	        if(nowPressed.includes(VK_D)) {
-	        	if(!isObserver) {
-		        	dx = +2;
-		        	if(my.x < MAP_FIELD.width-150)
-		            	my.x +=2
-		            if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
-		            	camera.x += 2
-	            } else {
-	            	if(camera.x + canvas.width < MAP_FIELD.width)
-	            		camera.x += 1*4;
-	            }
-	        }
-	        
-	        if(!isObserver) {
-		        my.centerX = my.x + 150/2;
-		        my.centerY = my.y + 150/2;
-	        }
-    
-        // INPUT
+	    // INPUT
         while(delta >= 1) {
             ticks++;
+            
+            if(nowPressed.includes(VK_W)) {
+		       	if(!isObserver) { // 플레이어
+			       	dy = -2;
+			      	
+			       	if(my.y > 0) {
+			       		my.y -= 2
+			       	}
+			        if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
+			            camera.y -= 2
+				    }
+			    } else { // 관전자
+			        
+			      	if(camera.y > 0) {
+			       		camera.y -= 4;
+			       	}
+			        
+			    }
+		            
+		    }
+	
+		    if(nowPressed.includes(VK_S)) {
+		       	if(!isObserver) { // 플레이어
+			        dy = +2;
+			        if(my.y < MAP_FIELD.height-150)
+			           	my.y += 2;
+			        if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
+			           	camera.y += 2;
+		        } else { // 관전자
+			        if(camera.y + canvas.height < MAP_FIELD.height)
+			            camera.y += 1*4;
+		        }
+		    }
+		
+		    if(nowPressed.includes(VK_A)) {
+		      	if(!isObserver) { // 플레이어
+			     	dx = -2;
+			   		if(my.x > 0)
+			   			my.x -= 2;
+			        
+			        if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
+			            camera.x -= 2;  
+		        } else { // 관전자
+		       		if(camera.x > 0)
+			            camera.x -= 1*4;
+		        }           
+		    }    
+		
+		    if(nowPressed.includes(VK_D)) {
+		    	if(!isObserver) {
+			       	dx = +2;
+			       	if(my.x < MAP_FIELD.width-150)
+			           	my.x +=2
+			        if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
+			          	camera.x += 2
+		        } else {
+		          	if(camera.x + canvas.width < MAP_FIELD.width)
+		          		camera.x += 1*4;
+		        }
+		    }
+	        
+		    if(!isObserver) {
+			    my.centerX = my.x + 150/2;
+			    my.centerY = my.y + 150/2;
+		    }
             
 	       	if((dx || dy) && !isObserver) {
 	       		if(dx < 0)
@@ -260,8 +259,6 @@ function InGame() {
 
 		if(shouldRender) {
 			frames_count++
-	        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
 	        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
 	  		
 			// 캐릭터 그리기
@@ -557,7 +554,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
-    this.direction = ""; // 어느 방향 쳐다보는지
+    this.direction = "right"; // 어느 방향 쳐다보는지
     this.centerX = 0;
     this.centerY = 0;
     this.animal = ""; // 어떤 동물인지
@@ -577,7 +574,7 @@ var MAP_FIELD = new Image();
 var MAP_DESERT = new Image();
 var MAP_SNOW = new Image();
 
-MAP_FIELD.src = "./map/desert.png"
+MAP_FIELD.src = "./map/field.png"
 MAP_DESERT.src = "./map/desert.png"
 MAP_SNOW.src = "./map/ice.png"
 
