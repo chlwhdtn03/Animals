@@ -126,6 +126,7 @@ function joinGame() {
                 
             case "changeProfile":
                 getPlayer(data.name).animal = data.animal;
+                getPlayer(data.name).animalcanvas = animal(data.animal)
                 getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
                 
@@ -142,7 +143,7 @@ function joinGame() {
 function InGame() {
     $("#QueueFrame").hide();
     $("#InGameFrame").show();
-
+    
     var canvas = document.getElementById("InGameCanvas");
    
     
@@ -269,26 +270,24 @@ function InGame() {
 			  		if(!isObserver) {
 				  		if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
 				  			ctx.save();
-				        	ctx.drawImage(ENTITY_HORSE, 
+				        	ctx.drawImage(p.animalcanvas, 
 				        		my.centerX < canvas.width/2 ?
 				        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
 				        			  (canvas.width/2)-150/2 : my.x-camera.x,
 				        		my.centerY < (canvas.height/2) ?
 				        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-				        			  (canvas.height/2)-150/2 : my.y-camera.y,
-				        		150, 150);
+				        			  (canvas.height/2)-150/2 : my.y-camera.y);
 				        	ctx.restore();
 				        } else if(my.direction == "left") { // 왼쪽으로 간다면( dx가 음수일 때)
 				        	ctx.save();
 				        	ctx.scale(-1,1);
-				        	ctx.drawImage(ENTITY_HORSE,
+				        	ctx.drawImage(p.animalcanvas,
 				        		 my.centerX < canvas.width/2 ?
 				        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
 				        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
 				        		 my.centerY < canvas.height/2 ?
 				        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-				        		 		(canvas.height/2)-150/2 : (my.y-camera.y),
-				        		 150, 150);
+				        		 		(canvas.height/2)-150/2 : (my.y-camera.y));
 				        	ctx.restore(); 
 						}
 					}
@@ -300,12 +299,12 @@ function InGame() {
 					if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
 						continue;
 					if(p.direction == "right") {
-						ctx.drawImage(ENTITY_HORSE, p.x-camera.x, p.y-camera.y, 150, 150)
+						ctx.drawImage(p.animalcanvas, p.x-camera.x, p.y-camera.y)
 					} else if(p.direction == "left") {
 
 			        	ctx.save();
 			        	ctx.scale(-1,1);
-						ctx.drawImage(ENTITY_HORSE, -(p.x-camera.x)-150, p.y-camera.y, 150, 150)
+						ctx.drawImage(p.animalcanvas, -(p.x-camera.x)-150, p.y-camera.y)
 			        	ctx.restore(); 
 					}
 				}
@@ -336,6 +335,30 @@ function InGame() {
     
 }
 var temp = 0;
+
+function animal(animal) {
+	var c=document.createElement('canvas');
+	var c2=c.getContext('2d');
+	
+	var temp;
+	switch(animal) {
+		case "chita": temp = ENTITY_CHITA; break;
+		case "colored_horse": temp = ENTITY_COLORED_HORSE; break;
+		case "crockdail": temp = ENTITY_CROCKDAIL; break;
+		case "hama": temp = ENTITY_HAMA; break;
+		case "horse": temp = ENTITY_HORSE; break;
+		case "noru": temp = ENTITY_NORU; break;
+		case "rion": temp = ENTITY_RION; break;
+		case "smart_monkey": temp = ENTITY_SMART_MONKEY; break;
+	}
+	
+	
+	c2.canvas.width = 150 // 모든 캐릭터의 WIDTH는 150
+	c2.canvas.height = Math.floor(150*temp.height/temp.width) // 비율로
+	
+	c2.drawImage(temp, 0, 0, c.width, c.height);
+	return(c);
+}
 
 function map(ctx){
 	var c=document.createElement('canvas');
@@ -386,6 +409,9 @@ function addPlayer(player)  { // 플레이어 추가
         joined.push(my);
     } else {
         joined.push(player);
+        if(player.animal != "") {
+    		player.animalcanvas = animal(player.animal)
+    	}
     }
 }
 
@@ -558,6 +584,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.centerX = 0;
     this.centerY = 0;
     this.animal = ""; // 어떤 동물인지
+    this.animalcanvas; // 그 동물 캔버스
     this.ready = false; // 준비했는지 여부  
     this.leaved = false; // 나갔는지 여부
 }
