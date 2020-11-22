@@ -1,4 +1,4 @@
-package animals;
+package data;
 
 public enum AnimalType {
 	

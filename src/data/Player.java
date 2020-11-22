@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import com.google.gson.JsonObject;
 
-import animals.AnimalType;
 import io.vertx.core.http.ServerWebSocket;
 
 public class Player implements Serializable {

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import data.MapType;
 import data.Player;
 import gui.AnimalsGUI;
 import server.AnimalServer;
@@ -25,6 +26,7 @@ public class Animals {
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
 	public static boolean isStarted = false; // 게임이 시작됬는지
 	public static boolean isIniting = false; // 게임이 시작 준비에 들어갔는지.(게임이 시작될땐 false로 바뀜)
+	public static MapType map;
 	
 	public static void main(String[] args) {
 		loadBuildCount();

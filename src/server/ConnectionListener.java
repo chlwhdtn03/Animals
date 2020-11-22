@@ -3,12 +3,15 @@ package server;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 
-import animals.AnimalType;
 import animals.Animals;
+import data.AnimalType;
 import data.Chat;
+import data.Map;
+import data.MapType;
 import data.Player;
 import data.Ready;
 import io.vertx.core.Handler;
@@ -28,6 +31,12 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			AnimalsPacket packet = gson.fromJson(frame.textData(), AnimalsPacket.class);
 
 			switch (packet.getType()) { // server.js 참고
+			case "attack": {
+				Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
+				Log.info(packet.getData().toString());
+				break;
+			}
+				
 			case "my":
 				try {
 					Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
@@ -42,14 +51,19 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					player.setWs(ws);
 					
 					send(ws, new AnimalsPacket("build", Animals.build));
-					send(ws, new AnimalsPacket("started", Animals.isStarted));
+					
+					if(Animals.isStarted || Animals.isIniting)
+						send(ws, new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
+					
 					for (Player p : Animals.onlinePlayers) {
 						send(ws, new AnimalsPacket("join", p)); // 지금 접속한 플레이어에게 모든 플레이어 정보 전송
 					}
-
 					Animals.onlinePlayers.add(player); // 지금 접속한 플레이어 저장
 
 					sendAll(new AnimalsPacket("join", player)); // 모든 플레이어에게 현재 접속한 플레이어 정보 전송
+					
+					send(ws, new AnimalsPacket("started", Animals.isStarted));
+					
 					Log.info(player.getName() + "(" + ws.remoteAddress() + ")가 접속했습니다.");
 					Animals.gui.refreshPlayerList();
 				} catch (Exception e) {
@@ -122,6 +136,14 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							sendAll(new AnimalsPacket("changeProfile", p)); // 바뀐 프로필 적용
 						}
 						
+						switch(random.nextInt(2)) {
+						case 0:
+							Animals.map = MapType.Field; break;
+						case 1:
+							Animals.map = MapType.Desert; break;
+						}
+						sendAll(new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
+						
 						Thread tempThread = new Thread(() -> {
 							for(int i = 3; i > 0; i--) {
 								Log.info(i + "초 후 게임 시작...");
@@ -138,7 +160,6 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							sendAll(new AnimalsPacket("startgame", 1)); // 전원에게 게임 시작
 						});
 						tempThread.start();
-						
 					}
 						
 					

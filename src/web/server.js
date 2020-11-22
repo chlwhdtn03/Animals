@@ -1,7 +1,8 @@
 var socket;
-var player_count = 0; // 접속했었던 플레이어 수
 var joined = new Array(); // 자신을 제외한 나머지 플레이어들 객체
 var my; // 자신 객체
+
+var nowMAP;
 
 var nowPressed = new Array();
 
@@ -130,6 +131,11 @@ function joinGame() {
                 getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
                 
+            case "changeMAP":
+                nowMAP = data.map
+                console.log(data.map);
+                break;
+                
             case "move":
                 getPlayer(data.name).x = data.x;
                 getPlayer(data.name).y = data.y;
@@ -145,7 +151,11 @@ function InGame() {
     $("#InGameFrame").show();
     
     var canvas = document.getElementById("InGameCanvas");
-   
+   	var current_MAP;
+   	switch(nowMAP) {
+   		case "field": current_MAP = MAP_FIELD; break;
+   		case "desert": current_MAP = MAP_DESERT; break;
+   	}
     
     $("#InGameFrame").focus();
     var ctx = canvas.getContext("2d", {alpha: false});
@@ -163,6 +173,7 @@ function InGame() {
     
     var dx=0, dy=0;
     var lastTimer = performance.now()
+    
     temp = performance.now()
     function loop(timestamp) {
 		
@@ -184,7 +195,7 @@ function InGame() {
 			       	if(my.y > 0) {
 			       		my.y -= 2
 			       	}
-			        if(camera.y > 0 && my.centerY < MAP_FIELD.height-(canvas.height/2)) {
+			        if(camera.y > 0 && my.centerY < current_MAP.height-(canvas.height/2)) {
 			            camera.y -= 2
 				    }
 			    } else { // 관전자
@@ -200,12 +211,12 @@ function InGame() {
 		    if(nowPressed.includes(VK_S)) {
 		       	if(!isObserver) { // 플레이어
 			        dy = +2;
-			        if(my.y < MAP_FIELD.height-150)
+			        if(my.y < current_MAP.height-150)
 			           	my.y += 2;
-			        if(my.centerY > canvas.height/2 && camera.y+canvas.height < MAP_FIELD.height)
+			        if(my.centerY > canvas.height/2 && camera.y+canvas.height < current_MAP.height)
 			           	camera.y += 2;
 		        } else { // 관전자
-			        if(camera.y + canvas.height < MAP_FIELD.height)
+			        if(camera.y + canvas.height < current_MAP.height)
 			            camera.y += 1*4;
 		        }
 		    }
@@ -216,7 +227,7 @@ function InGame() {
 			   		if(my.x > 0)
 			   			my.x -= 2;
 			        
-			        if(camera.x > 0 && my.centerX < MAP_FIELD.width-(canvas.width/2))
+			        if(camera.x > 0 && my.centerX < current_MAP.width-(canvas.width/2))
 			            camera.x -= 2;  
 		        } else { // 관전자
 		       		if(camera.x > 0)
@@ -227,19 +238,30 @@ function InGame() {
 		    if(nowPressed.includes(VK_D)) {
 		    	if(!isObserver) {
 			       	dx = +2;
-			       	if(my.x < MAP_FIELD.width-150)
+			       	if(my.x < current_MAP.width-150)
 			           	my.x +=2
-			        if(my.centerX > canvas.width/2 && camera.x+canvas.width < MAP_FIELD.width)
+			        if(my.centerX > canvas.width/2 && camera.x+canvas.width < current_MAP.width)
 			          	camera.x += 2
 		        } else {
-		          	if(camera.x + canvas.width < MAP_FIELD.width)
+		          	if(camera.x + canvas.width < current_MAP.width)
 		          		camera.x += 1*4;
 		        }
 		    }
+		    
+		    if(nowPressed.includes(VK_SPACE)) {
+		   		if(!isObserver) {
+		            const idx = nowPressed.indexOf(VK_SPACE);
+		            nowPressed.splice(idx, 1)
+		            if(my.weapon == false) {
+						socket.send(JSON.stringify(new Packet("attack", my)));
+		            	my.weapon = timestamp;
+		            }
+		        }		        		    
+		    }
 	        
 		    if(!isObserver) {
-			    my.centerX = my.x + 150/2;
-			    my.centerY = my.y + 150/2;
+			    my.centerX = my.x + my.animalcanvas.width/2;
+			    my.centerY = my.y + my.animalcanvas.height/2;
 		    }
             
 	       	if((dx || dy) && !isObserver) {
@@ -260,39 +282,12 @@ function InGame() {
 
 		if(shouldRender) {
 			frames_count++
-	        ctx.drawImage(MAP_FIELD, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
+	        ctx.drawImage(current_MAP, camera.x, camera.y, (camera.x+canvas.width), (camera.y+canvas.height), 0, 0, camera.x+canvas.width, camera.y+canvas.height);
 	  		
 			// 캐릭터 그리기
 			for(var p of joined) {
 				if(p.name == my.name) {
-					
-					// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
-			  		if(!isObserver) {
-				  		if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
-				  			ctx.save();
-				        	ctx.drawImage(p.animalcanvas, 
-				        		my.centerX < canvas.width/2 ?
-				        			 my.x : (camera.x+canvas.width < MAP_FIELD.width) ?
-				        			  (canvas.width/2)-150/2 : my.x-camera.x,
-				        		my.centerY < (canvas.height/2) ?
-				        			 my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-				        			  (canvas.height/2)-150/2 : my.y-camera.y);
-				        	ctx.restore();
-				        } else if(my.direction == "left") { // 왼쪽으로 간다면( dx가 음수일 때)
-				        	ctx.save();
-				        	ctx.scale(-1,1);
-				        	ctx.drawImage(p.animalcanvas,
-				        		 my.centerX < canvas.width/2 ?
-				        		 	 -(my.x)-150 : (camera.x+canvas.width < MAP_FIELD.width) ?
-				        		 	 	 -(canvas.width/2)-150/2 : -(my.x-camera.x)-150,
-				        		 my.centerY < canvas.height/2 ?
-				        		 	my.y : (camera.y+canvas.height < MAP_FIELD.height) ?
-				        		 		(canvas.height/2)-150/2 : (my.y-camera.y));
-				        	ctx.restore(); 
-						}
-					}
-					
-					continue; // 내꺼 다 그렸으면 continue해서 다른얘 그리러
+					continue; // 내껀 맨 마지막에
 				} else if(p.animal != "") { // 관전 모드인지 확인. 관전 아니면 그려주기
 					if(p.x < camera.x-150 || p.x > camera.x+canvas.width)
 						continue;
@@ -304,17 +299,73 @@ function InGame() {
 
 			        	ctx.save();
 			        	ctx.scale(-1,1);
-						ctx.drawImage(p.animalcanvas, -(p.x-camera.x)-150, p.y-camera.y)
+						ctx.drawImage(p.animalcanvas, -(p.x-camera.x)-p.animalcanvas.width, p.y-camera.y)
 			        	ctx.restore(); 
 					}
 				}
 			}
+			// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
+			if(!isObserver) {
+				if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
+					ctx.save();
+				    ctx.drawImage(my.animalcanvas, 
+				    	my.centerX < canvas.width/2 ?
+				    		my.x : (camera.x+canvas.width < current_MAP.width) ?
+				        		(canvas.width/2)-my.animalcanvas.width/2 : my.x-camera.x,
+				        my.centerY < (canvas.height/2) ?
+				        	my.y : (camera.y+canvas.height < current_MAP.height) ?
+				        		(canvas.height/2)-my.animalcanvas.height/2 : my.y-camera.y);
+				    ctx.restore();
+				     if(my.weapon) {
+				    	ctx.save()
+				    	var weapon_x = my.centerX < canvas.width/2 ?
+								    		my.centerX+my.animalcanvas.width/2 : (camera.x+canvas.width < current_MAP.width) ?
+								        		(canvas.width/2)+my.animalcanvas.width/2 : my.centerX-camera.x+my.animalcanvas.width/2
+				    	var weapon_y = my.centerY < (canvas.height/2) ?
+								        	my.centerY-my.animalcanvas.height/2 : (camera.y+canvas.height < current_MAP.height) ?
+								        		(canvas.height/2)-my.animalcanvas.height/2 : my.centerY-camera.y-my.animalcanvas.height/2
+				    	ctx.translate(weapon_x + my.animalcanvas.height/2, weapon_y + my.animalcanvas.height/2);
+				    	ctx.rotate((45+((timestamp-my.weapon)*0.1))*Math.PI/180); 
+				    	ctx.translate(-(weapon_x + my.animalcanvas.height/2),-(weapon_y + my.animalcanvas.height/2));
+				    	ctx.drawImage(ITEM_SWORD, weapon_x, weapon_y, my.animalcanvas.height, my.animalcanvas.height);
+				   		ctx.restore();
+					}
+				    	
+				} else if(my.direction == "left") { // 왼쪽으로 간다면( dx가 음수일 때)
+				    ctx.save();
+				    ctx.scale(-1,1);
+				    ctx.drawImage(my.animalcanvas,
+				    	 my.centerX < canvas.width/2 ?
+				    	 	 -(my.x)-my.animalcanvas.width : (camera.x+canvas.width < current_MAP.width) ?
+				    	 	 	 -(canvas.width/2)-my.animalcanvas.width/2 : -(my.x-camera.x)-my.animalcanvas.width,
+				    	 my.centerY < canvas.height/2 ?
+				    	 	my.y : (camera.y+canvas.height < current_MAP.height) ?
+				    	 		(canvas.height/2)-my.animalcanvas.height/2 : (my.y-camera.y));
+				    ctx.restore(); 
+				    
+				    if(my.weapon) {
+				    	ctx.save()
+				    	ctx.scale(-1,1)
+				    	var weapon_x = my.centerX < canvas.width/2 ?
+								    		-my.x : (camera.x+canvas.width < current_MAP.width) ?
+								        		-(canvas.width/2)+my.animalcanvas.width/2 : -(my.centerX-camera.x)+my.animalcanvas.width/2
+				    	var weapon_y = my.centerY < (canvas.height/2) ?
+								        	my.centerY-my.animalcanvas.height/2 : (camera.y+canvas.height < current_MAP.height) ?
+								        		(canvas.height/2)-my.animalcanvas.height/2 : my.centerY-camera.y-my.animalcanvas.height/2
+				    	ctx.translate(weapon_x + my.animalcanvas.height/2, weapon_y + my.animalcanvas.height/2);
+				    	ctx.rotate((45+((timestamp-my.weapon)*0.1))*Math.PI/180); 
+				    	ctx.translate(-(weapon_x + my.animalcanvas.height/2),-(weapon_y + my.animalcanvas.height/2));
+				    	ctx.drawImage(ITEM_SWORD, weapon_x, weapon_y, my.animalcanvas.height, my.animalcanvas.height);
+				   		ctx.restore();
+					}
+				}
+			}			
+			ctx.drawImage(map(ctx,current_MAP),50,50)
 			
-			
-			
-			
-			ctx.drawImage(map(ctx),50,50)
-			
+		}
+		
+		if(my.weapon + 1000 < timestamp) {
+			my.weapon = 0; // 소멸
 		}
 		
 		if(timestamp - lastTimer >= 1000) {
@@ -354,26 +405,27 @@ function animal(animal) {
 	
 	
 	c2.canvas.width = 150 // 모든 캐릭터의 WIDTH는 150
-	c2.canvas.height = Math.floor(150*temp.height/temp.width) // 비율로
+	var scale = 150 / temp.width
+	c2.canvas.height = Math.floor(temp.height * scale) // 비율로
 	
 	c2.drawImage(temp, 0, 0, c.width, c.height);
 	return(c);
 }
 
-function map(ctx){
+function map(ctx, currentmap){
 	var c=document.createElement('canvas');
 	var c2=c.getContext('2d');
 	
-	//c2.canvas.width =  MAP_FIELD.width
-	//c2.canvas.height = MAP_FIELD.height
+	//c2.canvas.width =  currentmap.width
+	//c2.canvas.height = currentmap.height
 	c2.canvas.width = 200
-	c2.canvas.height= Math.floor(200*MAP_FIELD.height/MAP_FIELD.width)
+	c2.canvas.height= Math.floor(200*currentmap.height/currentmap.width)
 	
-	var scale = 200 / MAP_FIELD.width
+	var scale = 200 / currentmap.width
 	
 	c2.globalAlpha = 0.6; // 맵 투명도
 	
-	c2.drawImage(MAP_FIELD,0,0,c.width,c.height);
+	c2.drawImage(currentmap,0,0,c.width,c.height);
 	
 	c2.strokeStyle = 'darkgreen'
 	c2.lineWidth = 2
@@ -387,13 +439,33 @@ function map(ctx){
 	if(my.animal != "") { // 내가 관전자가 아닌 플레이어일 경우 지도에 위치 표시	
 		c2.beginPath()
 		c2.lineWidth = 2
-		c2.strokeStyle = 'red'
+		c2.strokeStyle = 'white'
 		c2.arc(my.centerX*scale, my.centerY*scale, 2, 0, 2 * Math.PI);
 		c2.fill()
 		c2.closePath()
 	} else { // 관전자일 경우
 		c2.font = mapfont_size + "px bold";
 		c2.fillText("관전 모드", 5,c.height-mapfont_size/5)
+	}
+	
+	for(var other of joined) {
+		if(other.animalcanvas == null)
+			continue;
+		if(my.animal != "") { // 내가 관전 모드가 아니라면 내 화각 안에 있는 것들만 보이도록 
+			if(other.animal == "")
+				continue;
+			if(!((other.x+other.animalcanvas.width/2) > camera.x && (other.x+other.animalcanvas.width/2) < camera.x+ctx.canvas.width))
+				continue;
+			if(!((other.y+other.animalcanvas.height/2) > camera.y && (other.y+other.animalcanvas.height/2) < camera.y+ctx.canvas.height))
+				continue;
+		}
+			
+		c2.beginPath()
+		c2.lineWidth = 2
+		c2.strokeStyle = 'red'
+		c2.arc((other.x+other.animalcanvas.width/2)*scale, (other.y+other.animalcanvas.height/2)*scale, 2, 0, 2 * Math.PI);
+		c2.fill()
+		c2.closePath()
 	}
 	
 	return(c);
@@ -581,6 +653,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.x = x;
     this.y = y;
     this.direction = "right"; // 어느 방향 쳐다보는지
+    this.weapon = 0; // 무기를 몇초동안 보여야하는지
     this.centerX = 0;
     this.centerY = 0;
     this.animal = ""; // 어떤 동물인지
@@ -629,3 +702,5 @@ ENTITY_SMART_MONKEY.src="./resource/entity/smart_monkey.png"
 
 
 // ITEM IMAGE
+var ITEM_SWORD = new Image();
+ITEM_SWORD.src = "./resource/item/sword.png"
