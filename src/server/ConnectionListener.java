@@ -33,7 +33,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			switch (packet.getType()) { // server.js 참고
 			case "attack": {
 				Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
-				Log.info(packet.getData().toString());
+				
 				break;
 			}
 				
