@@ -1,11 +1,8 @@
 package packet;
 
-import java.io.Serializable;
-
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class AnimalsPacket implements Serializable {
+public class AnimalsPacket {
 	
 	private String type;
 	private Object data;

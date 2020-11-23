@@ -2,8 +2,10 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.InetAddress;
@@ -15,23 +17,32 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.plaf.basic.BasicScrollBarUI;
+
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
 import animals.Animals;
+import data.Chat;
 import data.Player;
+import packet.AnimalsPacket;
 import server.AnimalServer;
+import server.ConnectionListener;
 import util.Log;
 
+@SuppressWarnings("serial")
 public class AnimalsGUI extends JFrame {
 	
 	public JTextArea textarea;
+	public JTextField chat_field;
 	public JScrollPane scrollbar;
 	public JList<String> playerlist;
 	public JScrollPane playerlist_scrollbar;
@@ -47,6 +58,8 @@ public class AnimalsGUI extends JFrame {
 		super("애니멀즈 Build. " + Animals.build);
 		
 		setLayout(new BorderLayout());		
+		
+		JPanel console_Panel = new JPanel(new BorderLayout());
 		
 		textarea = new JTextArea();
 		scrollbar = new JScrollPane(textarea);
@@ -72,6 +85,28 @@ public class AnimalsGUI extends JFrame {
 		
 		scrollbar.getVerticalScrollBar().setUI(scroll_ui);
 		playerlist_scrollbar.getVerticalScrollBar().setUI(scroll_ui2);
+		
+		chat_field = new JTextField();
+		chat_field.setOpaque(true);
+		chat_field.setBorder(null);
+		chat_field.setBackground(SystemColor.lightGray);
+		chat_field.setFont(font);
+		
+		chat_field.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String msg = chat_field.getText();
+				if(msg.trim().isEmpty())
+					return;
+				
+				chat_field.setText("");
+				
+				ConnectionListener.sendAll(new AnimalsPacket("notice", new Chat(msg)));
+				Log.info("[방장] " + msg);
+				msg = null;
+			}
+		});
 		
 		
 		JLabel connectDescription = new JLabel("이게 뭔 컴퓨터죠?");
@@ -120,7 +155,11 @@ public class AnimalsGUI extends JFrame {
 		add(playerlist_scrollbar, BorderLayout.EAST);
 		
 		add(connectDescription, BorderLayout.NORTH);
-		add(scrollbar, BorderLayout.CENTER);
+		
+		console_Panel.add(scrollbar, BorderLayout.CENTER);
+		console_Panel.add(chat_field, BorderLayout.SOUTH);
+		
+		add(console_Panel, BorderLayout.CENTER);
 		
 		
 		

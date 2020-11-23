@@ -11,6 +11,7 @@ import util.Log;
 
 public class AnimalServer {
 
+	@SuppressWarnings("unused")
 	private HttpServer server;
 	
 	public AnimalServer() {

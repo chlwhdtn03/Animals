@@ -11,6 +11,7 @@ var isStarted = false // 게임이 시작했는지
 var disconnectCode = 0;
 
 var noticeThread;
+var screenThread;
 
 var camera = new Camera(0,0);
 
@@ -71,12 +72,26 @@ function joinGame() {
                 notice("<span style='color:red;'>뭐해?</span>")
                 break;
         }
+        window.cancelAnimationFrame(screenThread);
+        $("#QueueFrame").show();
+        $("#InGameFrame").hide();
+
+        $("#btn-ready").css("background-color", "grey");
+        $("#btn-ready").html("서버와의 연결이 해제되었습니다. 😢");
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
         var type = JSON.parse(a.data).type;
         var data = JSON.parse(JSON.parse(a.data).data);
         switch(type) {
+        
+        	case "notice":
+        		notice("[방장] " + data.message);
+        		break;
+        
+        	case "damage":
+        		notice(data.damager + " 공격 받음. 공격자 : " + data.attacker);
+        		break;
                 
             case "waitTostart":
                 notice(data + "초 후 게임이 시작됩니다!")
@@ -376,11 +391,11 @@ function InGame() {
 		}
 		
     	if(isStarted)
-    		requestAnimationFrame(loop);
+    		screenThread = requestAnimationFrame(loop);
     		
 		
     }
-    window.requestAnimationFrame(loop);
+    screenThread = window.requestAnimationFrame(loop);
 
     
     

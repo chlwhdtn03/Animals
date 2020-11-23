@@ -1,19 +1,17 @@
 package server;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
-import java.util.logging.Logger;
-
 import com.google.gson.Gson;
 
 import animals.Animals;
 import data.AnimalType;
 import data.Chat;
+import data.Damage;
 import data.Map;
 import data.MapType;
 import data.Player;
 import data.Ready;
+import data.Vector2D;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
 import packet.AnimalsPacket;
@@ -33,7 +31,25 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			switch (packet.getType()) { // server.js 참고
 			case "attack": {
 				Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
-				
+				try {
+					Vector2D attack_zone = new Vector2D(player.getX()+player.getAnimal().getWidth(), player.getY(),
+							player.getX()+player.getAnimal().getWidth()+100, player.getY()+100);
+	
+					
+					for(Player target : Animals.onlinePlayers) {
+						if(target.getName().equals(player.getName())) continue;
+	
+						if(player.getDirection().equals("right")) { // 오른쪽을 바라보고 있을 때
+							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
+								sendAll(new AnimalsPacket("damage", new Damage(player.getName(), target.getName(), 10)));
+							}
+							
+							
+						}
+					}
+				} catch(Exception e) {
+					Log.error(e);
+				}
 				break;
 			}
 				
@@ -110,10 +126,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						int temp;
 						Random random = new Random();
 						for(Player p : Animals.onlinePlayers) { // 모두에게 랜덤으로 동물 배정
-							try {
-								p.getAnimal();
-								continue;
-							} catch(Exception e) {
+							
 								temp = random.nextInt(8); // 7 랜덤생성
 								if(temp == 0)
 									p.setAnimal(AnimalType.치타);			
@@ -130,9 +143,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 								else if(temp == 6)
 									p.setAnimal(AnimalType.사자);			
 								else if(temp == 7)
-									p.setAnimal(AnimalType.유인원);		
-							}							
-								
+									p.setAnimal(AnimalType.유인원);				
 							sendAll(new AnimalsPacket("changeProfile", p)); // 바뀐 프로필 적용
 						}
 						
@@ -187,7 +198,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	 * @see 접속자 모두에게 데이터 전송
 	 * @param msg 전송할 내용
 	 */
-	public void sendAll(AnimalsPacket packet) {
+	public static void sendAll(AnimalsPacket packet) {
 
 		for (Player p : Animals.onlinePlayers) {
 			try {

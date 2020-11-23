@@ -1,12 +1,10 @@
 package data;
 
-import java.io.Serializable;
-
 import com.google.gson.JsonObject;
 
 import io.vertx.core.http.ServerWebSocket;
 
-public class Player implements Serializable {
+public class Player {
 
 	private ServerWebSocket ws;
 	private String name;
@@ -15,12 +13,16 @@ public class Player implements Serializable {
 	private int x, y;
 	private boolean ready;
 	private boolean leaved;
+	@SuppressWarnings("unused")
+	private Vector2D vector2d;
 	
 	
 	
-	
-	public String getAnimal() {
-		return animal.getName();
+	public AnimalType getAnimal() {
+		return animal;
+	}	
+	public void setAnimal(String animal) {
+		this.animal = AnimalType.valueOf(animal);
 	}
 	public void setAnimal(AnimalType animal) {
 		this.animal = animal;
@@ -66,6 +68,9 @@ public class Player implements Serializable {
 	}
 	public void setDirection(String direction) {
 		this.direction = direction;
+	}
+	public Vector2D getVector2D() {
+		return vector2d = new Vector2D(this);
 	}
 	
 	@Override

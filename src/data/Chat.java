@@ -7,6 +7,11 @@ public class Chat {
 	private String name;
 	private String message;
 	
+	public Chat() {}
+	public Chat(String message) {
+		this.message = message;
+	}
+	
 	public String getName() {
 		return name;
 	}
