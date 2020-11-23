@@ -1,6 +1,10 @@
 package server;
 
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import com.google.gson.Gson;
 
 import animals.Animals;
@@ -31,19 +35,34 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			switch (packet.getType()) { // server.js 참고
 			case "attack": {
 				Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
+				sendAll(new AnimalsPacket("attack", player));
 				try {
-					Vector2D attack_zone = new Vector2D(player.getX()+player.getAnimal().getWidth(), player.getY(),
-							player.getX()+player.getAnimal().getWidth()+100, player.getY()+100);
-	
-					
-					for(Player target : Animals.onlinePlayers) {
-						if(target.getName().equals(player.getName())) continue;
-	
-						if(player.getDirection().equals("right")) { // 오른쪽을 바라보고 있을 때
+
+					if(player.getDirection().equals("right")) { // 오른쪽을 바라보고 있을 때
+						Vector2D attack_zone = new Vector2D(player.getX()+player.getAnimal().getWidth(), player.getY(),
+								player.getX()+player.getAnimal().getWidth()+player.getAnimal().getHeight(), player.getY()+player.getAnimal().getHeight());
+						// 무기의 크기는 캐릭터의 높이값과 동일
+						
+						for(Player target : Animals.onlinePlayers) {
+							if(target.getAnimal() == null) continue; // 관전자는 검사할 필요 X
+							if(target.getName().equals(player.getName())) continue; // 동일인은 검사할 필요 X
+							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
 								sendAll(new AnimalsPacket("damage", new Damage(player.getName(), target.getName(), 10)));
 							}
 							
+						}
+					} else if(player.getDirection().equals("left")) { // 왼쪽을 바라보고 있을 때
+						Vector2D attack_zone = new Vector2D(player.getX()-player.getAnimal().getHeight(), player.getY(),
+								player.getX(), player.getY()+player.getAnimal().getHeight());
+						
+						for(Player target : Animals.onlinePlayers) {
+							if(target.getAnimal() == null) continue; // 관전자는 검사할 필요 X
+							if(target.getName().equals(player.getName())) continue; // 동일인은 검사할 필요 X
+							
+							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
+								sendAll(new AnimalsPacket("damage", new Damage(player.getName(), target.getName(), 10)));
+							}
 							
 						}
 					}
@@ -114,7 +133,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					String readyer = (String) packet.getData();
 					getPlayer(readyer).setReady(true);
 					Log.info(readyer + "가 준비했습니다.");
-					sendAll(new AnimalsPacket("ready", new Ready(readyer)));
+					sendAll(new AnimalsPacket("ready", new Ready(readyer, true)));
 					
 					if(isAllReady(Animals.MIN_PLAYER)) { // 2명 이상 이고 모두 레디 눌렀을때
 						if(Animals.isStarted)
@@ -189,6 +208,13 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				sendAll(new AnimalsPacket("leave", player));
 				Animals.gui.refreshPlayerList();
 				ws.close();
+				
+				Collector<Player, ?, List<Player>> collector = Collectors.toList();
+				int count = Animals.onlinePlayers.stream().filter(p->p.getAnimal()!=null).collect(collector).size();
+				if(count< Animals.MIN_PLAYER) {
+					resetGame(0);
+					
+				}					
 			}
 		});
 
@@ -237,6 +263,29 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 		if(Animals.onlinePlayers.size() < min_Player)
 			return false;
 		return Animals.onlinePlayers.stream().allMatch(obj -> obj.isReady() == true);
+	}
+	
+	public void resetGame(int stopcode) { // 0 : 인원 부족 종료, 1 : 승리 종료
+		for(Player p : Animals.onlinePlayers) {
+			p.setAnimal(null);
+			p.setReady(false);
+			sendAll(new AnimalsPacket("stopgame", stopcode));
+			sendAll(new AnimalsPacket("changeProfile", p));
+			sendAll(new AnimalsPacket("ready", new Ready(p.getName(), false)));
+		}
+		
+		Animals.isIniting = false;
+		Animals.isStarted = false;
+		
+		switch(stopcode) {
+		case 0:
+			Log.info("플레이어가 부족하여 게임이 중단되었습니다.");
+			break;
+		case 1:
+			
+			break;
+		}
+		
 	}
 
 

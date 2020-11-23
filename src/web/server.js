@@ -74,6 +74,8 @@ function joinGame() {
         }
         window.cancelAnimationFrame(screenThread);
         $("#QueueFrame").show();
+        $("#footer").show();
+    	$("#btn-ready").show();
         $("#InGameFrame").hide();
 
         $("#btn-ready").css("background-color", "grey");
@@ -87,6 +89,10 @@ function joinGame() {
         
         	case "notice":
         		notice("[방장] " + data.message);
+        		break;
+        		
+        	case "attack":
+		        getPlayer(data.name).weapon = -1;
         		break;
         
         	case "damage":
@@ -111,6 +117,11 @@ function joinGame() {
                     InGame();
                 break;
                 
+            case "stopgame":
+            	var stopcode = data;
+                stopGame(stopcode)
+                
+            	break;
             
             case "kick":
                 disconnectCode = data;
@@ -125,7 +136,7 @@ function joinGame() {
                 break;
 
             case "ready":
-                getPlayer(data.readyer).ready = true;
+                getPlayer(data.readyer).ready = data.ready;
                 checkReady(data.readyer);
                 break;
                 
@@ -161,8 +172,29 @@ function joinGame() {
 
 }
 
+function stopGame(stopcode) {
+
+    window.cancelAnimationFrame(screenThread);
+    
+    for(var p of joined) {
+    	p.animal = "";
+    	p.animalcanvas = null;
+    }
+    
+    if(stopcode == 0)
+    	notice("<span style='color:yellow'>생존한 플레이어가 모두 나가 게임이 종료되었습니다. (눙물)</span>")
+    
+    $("#QueueFrame").show();
+    $("#InGameFrame").hide();
+    $("#footer").show();
+    $("#btn-ready").show();
+    
+
+}
+
 function InGame() {
     $("#QueueFrame").hide();
+    $("#footer").hide();
     $("#InGameFrame").show();
     
     var canvas = document.getElementById("InGameCanvas");
@@ -184,6 +216,9 @@ function InGame() {
     var isObserver = my.animal == "";
     if(isObserver) {
     	notice("관전")
+    	
+    	$("#footer").show();
+    	$("#btn-ready").hide();
     }
     
     var dx=0, dy=0;
@@ -269,7 +304,6 @@ function InGame() {
 		            nowPressed.splice(idx, 1)
 		            if(my.weapon == false) {
 						socket.send(JSON.stringify(new Packet("attack", my)));
-		            	my.weapon = timestamp;
 		            }
 		        }		        		    
 		    }
@@ -301,6 +335,9 @@ function InGame() {
 	  		
 			// 캐릭터 그리기
 			for(var p of joined) {
+			
+				if(p.weapon == -1) p.weapon = timestamp;
+				
 				if(p.name == my.name) {
 					continue; // 내껀 맨 마지막에
 				} else if(p.animal != "") { // 관전 모드인지 확인. 관전 아니면 그려주기
@@ -310,12 +347,40 @@ function InGame() {
 						continue;
 					if(p.direction == "right") {
 						ctx.drawImage(p.animalcanvas, p.x-camera.x, p.y-camera.y)
+						if(p.weapon) {
+							ctx.save()
+					    	var weapon_x = p.x-camera.x+p.animalcanvas.width
+					    	var weapon_y = p.y-camera.y
+					    	ctx.translate(weapon_x + p.animalcanvas.height/2, weapon_y + p.animalcanvas.height/2);
+					    	ctx.rotate((45+((timestamp-p.weapon)*0.1))*Math.PI/180);
+					    	ctx.translate(-(weapon_x + p.animalcanvas.height/2),-(weapon_y + p.animalcanvas.height/2));
+					    	ctx.drawImage(ITEM_SWORD, weapon_x, weapon_y, p.animalcanvas.height, p.animalcanvas.height);
+					   		ctx.restore();
+							
+						}
 					} else if(p.direction == "left") {
 
 			        	ctx.save();
 			        	ctx.scale(-1,1);
 						ctx.drawImage(p.animalcanvas, -(p.x-camera.x)-p.animalcanvas.width, p.y-camera.y)
 			        	ctx.restore(); 
+			        	if(p.weapon) {
+							ctx.save()
+							
+				    		ctx.scale(-1,1)
+					    	var weapon_x = -(p.x-camera.x)
+				    		var weapon_y = p.y-camera.y
+					    	ctx.translate(weapon_x + p.animalcanvas.height/2, weapon_y + p.animalcanvas.height/2);
+					    	ctx.rotate((45+((timestamp-p.weapon)*0.1))*Math.PI/180);
+					    	ctx.translate(-(weapon_x + p.animalcanvas.height/2),-(weapon_y + p.animalcanvas.height/2));
+					    	ctx.drawImage(ITEM_SWORD, weapon_x, weapon_y, p.animalcanvas.height, p.animalcanvas.height);
+					   		ctx.restore();
+							
+						}
+					}
+					
+					if(p.weapon + 1000 < timestamp) {
+						p.weapon = 0; // 소멸
 					}
 				}
 			}
@@ -378,7 +443,6 @@ function InGame() {
 			ctx.drawImage(map(ctx,current_MAP),50,50)
 			
 		}
-		
 		if(my.weapon + 1000 < timestamp) {
 			my.weapon = 0; // 소멸
 		}

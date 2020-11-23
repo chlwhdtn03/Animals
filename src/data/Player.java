@@ -21,9 +21,6 @@ public class Player {
 	public AnimalType getAnimal() {
 		return animal;
 	}	
-	public void setAnimal(String animal) {
-		this.animal = AnimalType.valueOf(animal);
-	}
 	public void setAnimal(AnimalType animal) {
 		this.animal = animal;
 	}
