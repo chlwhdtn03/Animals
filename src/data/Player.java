@@ -11,13 +11,29 @@ public class Player {
 	private AnimalType animal; // 동물 이름
 	private String direction;
 	private int x, y;
+	private int health;
 	private boolean ready;
 	private boolean leaved;
 	@SuppressWarnings("unused")
 	private Vector2D vector2d;
 	
+	public void makeSpectator() {
+		x = 0;
+		y = 0;
+		health = 0;
+		direction = "right";
+		animal = null;
+	}
 	
-	
+	public void setHealth(int health) {
+		this.health = health;
+	}
+	public int getHealth() {
+		return health;
+	}
+	public int getMaxhealth() {
+		return animal.getMaxhealth();
+	}
 	public AnimalType getAnimal() {
 		return animal;
 	}	
@@ -74,6 +90,7 @@ public class Player {
 	public String toString() {
 		JsonObject obj = new JsonObject();
 		obj.addProperty("name", name);
+		obj.addProperty("health", health);
 		obj.addProperty("x", x);
 		obj.addProperty("y", y);
 		obj.addProperty("direction", direction);

@@ -7,6 +7,7 @@ var nowMAP;
 var nowPressed = new Array();
 
 var isStarted = false // 게임이 시작했는지
+var isObserver = false;
 
 var disconnectCode = 0;
 
@@ -96,9 +97,28 @@ function joinGame() {
         		break;
         
         	case "damage":
-        		notice(data.damager + " 공격 받음. 공격자 : " + data.attacker);
-        		break;
-                
+		        getPlayer(data.damager).health -= data.damage;
+		        break;
+		        
+		    case "winner":
+		    	notice("<b style='color:orange'>" + data.name + "님이 승리하였습니다!</b> 잠시 후 대기실로 이동합니다.");
+		        break;
+            case "dead":
+            	var dead = JSON.parse(data.dead);
+                getPlayer(dead.name).x = dead.x
+                getPlayer(dead.name).y = dead.y
+                getPlayer(dead.name).health = dead.health
+                getPlayer(dead.name).animal = dead.animal
+                getPlayer(dead.name).animalcanvas = null
+                getPlayer(dead.name).direction = dead.direction
+             
+                if(dead.name == my.name) {			
+                	isObserver = true;    	
+			    	$("#footer").show();
+			    	$("#btn-ready").hide();
+			    }
+        		notice(dead.name + " 탈락!");
+                break;
             case "waitTostart":
                 notice(data + "초 후 게임이 시작됩니다!")
                 break;
@@ -154,6 +174,7 @@ function joinGame() {
             case "changeProfile":
                 getPlayer(data.name).animal = data.animal;
                 getPlayer(data.name).animalcanvas = animal(data.animal)
+                getPlayer(data.name).health = data.health
                 getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
                 
@@ -183,6 +204,8 @@ function stopGame(stopcode) {
     
     if(stopcode == 0)
     	notice("<span style='color:yellow'>생존한 플레이어가 모두 나가 게임이 종료되었습니다. (눙물)</span>")
+    if(stopcode == 1)
+    	notice("다시 레디하여 게임을 진행할 수 있습니다.")
     
     $("#QueueFrame").show();
     $("#InGameFrame").hide();
@@ -213,7 +236,7 @@ function InGame() {
   	
     mapfont_size = 200 / 10
     
-    var isObserver = my.animal == "";
+    isObserver = my.animal == "";
     if(isObserver) {
     	notice("관전")
     	
@@ -731,6 +754,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.name = name;
     this.x = x;
     this.y = y;
+    this.health = 0;
     this.direction = "right"; // 어느 방향 쳐다보는지
     this.weapon = 0; // 무기를 몇초동안 보여야하는지
     this.centerX = 0;

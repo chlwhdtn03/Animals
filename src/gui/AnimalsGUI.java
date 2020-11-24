@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
@@ -25,16 +24,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import animals.Animals;
 import data.Chat;
 import data.Player;
 import packet.AnimalsPacket;
-import server.AnimalServer;
 import server.ConnectionListener;
 import util.Log;
 
@@ -139,8 +134,7 @@ public class AnimalsGUI extends JFrame {
 			
 			connectDescription.setFont(new Font("맑은 고딕", Font.BOLD, 22));
 		} catch (UnknownHostException | SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.error(e);
 		}
 		connectDescription.setHorizontalAlignment(SwingUtilities.CENTER);
 		
