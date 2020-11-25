@@ -19,7 +19,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -67,6 +69,36 @@ public class AnimalsGUI extends JFrame {
 		
 		playerlist.setBorder(null);
 		playerlist_scrollbar.setBorder(getTitleBorder());
+		
+		JPopupMenu kick_popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem("추방");
+		item.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+
+				int slot = playerlist.getSelectedIndex();
+				Log.warning(Animals.onlinePlayers.get(slot).getName() + "님을 성공적으로 추방하였습니다.");
+				ConnectionListener.KickPlayer(Animals.onlinePlayers.get(slot), 4);
+				super.mouseReleased(e);
+				
+			}
+		});
+		kick_popup.add(item);
+		
+		playerlist.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(SwingUtilities.isRightMouseButton(e)) {
+					int slot = playerlist.locationToIndex(e.getPoint());
+					if(slot == -1) 
+						return;
+					playerlist.setSelectedIndex(slot);
+					kick_popup.show(playerlist, e.getX(), e.getY());
+					super.mouseClicked(e);
+				}
+			}
+		});
+		
 		
 		textarea.setFont(font);
 		textarea.setEditable(false);

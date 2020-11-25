@@ -62,15 +62,29 @@ function joinGame() {
     }
     
     socket.onclose = function() { // 연결 끊어졌을때
+   
+   		var cause = "";
         switch(disconnectCode) {
             case 0:
-                notice("서버와의 연결이 끊겼습니다.");
+            	cause = "서버와의 연결이 끊겼습니다."
+                notice(cause);
                 break;
             case 1:
-                notice("중복된 닉네임을 사용했습니다.<br>F5를 눌러 다시 접속하세요.")
+            	cause = "중복된 닉네임을 사용했습니다. F5를 눌러 다시 접속하세요."
+                notice(cause)
                 break;      
             case 2:
-                notice("<span style='color:red;'>뭐해?</span>")
+            	cause = "<span style='color:red; font-size:30px;'><b>뭐해?</b></span>"
+                notice(cause)
+                break;
+            case 3:
+            	cause = "이미 동일 IP에서 접속중입니다."
+                notice(cause)
+                break;
+                
+           case 4:
+            	cause = "방장에 의해 강제 <b>추방</b>당하였습니다."
+                notice(cause)
                 break;
         }
         window.cancelAnimationFrame(screenThread);
@@ -80,7 +94,7 @@ function joinGame() {
         $("#InGameFrame").hide();
 
         $("#btn-ready").css("background-color", "grey");
-        $("#btn-ready").html("서버와의 연결이 해제되었습니다. 😢");
+        $("#btn-ready").html(cause);
     }
     
     socket.onmessage = function(a) { // 서버한테 메세지 받을 때
@@ -164,6 +178,8 @@ function joinGame() {
                 addPlayer(data);
                 addPlayerbox(data.name);
                 checkReady(data.name);
+                if(data.animal != "")
+                	getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
 
             case "leave":
@@ -203,7 +219,7 @@ function stopGame(stopcode) {
     }
     
     if(stopcode == 0)
-    	notice("<span style='color:yellow'>생존한 플레이어가 모두 나가 게임이 종료되었습니다. (눙물)</span>")
+    	notice("<span style='color:yellow'>생존한 플레이어가 모두 나가 게임이 종료되었습니다. 😥😥</span>")
     if(stopcode == 1)
     	notice("다시 레디하여 게임을 진행할 수 있습니다.")
     

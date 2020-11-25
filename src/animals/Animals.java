@@ -23,6 +23,10 @@ public class Animals {
 	public static final int MIN_PLAYER = 2;
 	public static int startCount = 10;
 	
+	/** 정책 */
+	public static boolean isAllow_sameIP = true; // 동일 IP 다중접속 허용 여부
+	public static boolean isAllow_longName = true; // 긴 닉네임 허용 여부
+	
 	/** 중요 데이터 */
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
 	public static boolean isStarted = false; // 게임이 시작됬는지
