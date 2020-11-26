@@ -16,6 +16,7 @@ var screenThread;
 
 var camera = new Camera(0,0);
 
+
 const VK_W = 87;
 const VK_A = 65;
 const VK_S = 83;
@@ -86,6 +87,11 @@ function joinGame() {
             	cause = "방장에 의해 강제 <b>추방</b>당하였습니다."
                 notice(cause)
                 break;
+                
+           case 5:
+            	cause = "게임 도중에 게임창을 내리지 마세요!"
+                notice(cause)
+                break;
         }
         window.cancelAnimationFrame(screenThread);
         $("#QueueFrame").show();
@@ -115,7 +121,7 @@ function joinGame() {
 		        break;
 		        
 		    case "winner":
-		    	notice("<b style='color:orange'>" + data.name + "님이 승리하였습니다!</b> 잠시 후 대기실로 이동합니다.");
+		    	notice("<h3 style='color:orange'>" + data.name + "님이 승리하였습니다!</h3>");
 		        break;
             case "dead":
             	var dead = JSON.parse(data.dead);
@@ -191,6 +197,7 @@ function joinGame() {
                 getPlayer(data.name).animal = data.animal;
                 getPlayer(data.name).animalcanvas = animal(data.animal)
                 getPlayer(data.name).health = data.health
+                getPlayer(data.name).maxhealth = data.maxhealth
                 getPlayerboxImage(data.name).getElementsByTagName("img")[0].src = "resource/entity/"+data.animal+".png";
                 break;
                 
@@ -279,10 +286,9 @@ function InGame() {
             
             if(nowPressed.includes(VK_W)) {
 		       	if(!isObserver) { // 플레이어
-			       	dy = -2;
 			      	
 			       	if(my.y > 0) {
-			       		my.y -= 2
+			       		dy = -2;
 			       	}
 			        if(camera.y > 0 && my.centerY < current_MAP.height-(canvas.height/2)) {
 			            camera.y -= 2
@@ -299,9 +305,8 @@ function InGame() {
 	
 		    if(nowPressed.includes(VK_S)) {
 		       	if(!isObserver) { // 플레이어
-			        dy = +2;
 			        if(my.y < current_MAP.height-150)
-			           	my.y += 2;
+			        	dy = +2;
 			        if(my.centerY > canvas.height/2 && camera.y+canvas.height < current_MAP.height)
 			           	camera.y += 2;
 		        } else { // 관전자
@@ -312,9 +317,8 @@ function InGame() {
 		
 		    if(nowPressed.includes(VK_A)) {
 		      	if(!isObserver) { // 플레이어
-			     	dx = -2;
 			   		if(my.x > 0)
-			   			my.x -= 2;
+			     		dx = -2;
 			        
 			        if(camera.x > 0 && my.centerX < current_MAP.width-(canvas.width/2))
 			            camera.x -= 2;  
@@ -326,9 +330,8 @@ function InGame() {
 		
 		    if(nowPressed.includes(VK_D)) {
 		    	if(!isObserver) {
-			       	dx = +2;
 			       	if(my.x < current_MAP.width-150)
-			           	my.x +=2
+			       		dx = +2;
 			        if(my.centerX > canvas.width/2 && camera.x+canvas.width < current_MAP.width)
 			          	camera.x += 2
 		        } else {
@@ -358,7 +361,7 @@ function InGame() {
 	            if(dx > 0)
 	            	my.direction = "right"
 	            		
-	        	socket.send(JSON.stringify(new Packet("move", my)));
+	        	socket.send(JSON.stringify(new Packet("move", new MovePacket(dx,dy,my.direction))));
 	        	
 	       	}
 	        delta -= 1;
@@ -384,7 +387,11 @@ function InGame() {
 						continue;
 					if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
 						continue;
+					
+					ctx.drawImage(drawHealthBar(p), p.x-camera.x, p.y-camera.y-50)
+					
 					if(p.direction == "right") {
+						
 						ctx.drawImage(p.animalcanvas, p.x-camera.x, p.y-camera.y)
 						if(p.weapon) {
 							ctx.save()
@@ -425,6 +432,8 @@ function InGame() {
 			}
 			// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
 			if(!isObserver) {
+			
+				
 				if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
 					ctx.save();
 				    ctx.drawImage(my.animalcanvas, 
@@ -480,7 +489,7 @@ function InGame() {
 				}
 			}			
 			ctx.drawImage(map(ctx,current_MAP),50,50)
-			
+			ctx.drawImage(drawHealthBar(my), 50, 200)
 		}
 		if(my.weapon + 1000 < timestamp) {
 			my.weapon = 0; // 소멸
@@ -504,6 +513,47 @@ function InGame() {
     
 }
 var temp = 0;
+
+function drawHealthBar(p) {
+	var c=document.createElement('canvas');
+	var c2=c.getContext('2d');
+	
+	c.width = p.animalcanvas.width;
+	c.height = 25;
+	
+	c2.globalAlpha = 0.8;
+	
+	
+	if(p.name == my.name) {
+	
+		c.width = p.animalcanvas.width + 100;
+		c2.font = "20px bold";
+		c2.fillStyle = 'white'
+		c2.fillText("내 체력 : ", 0, 20)
+			
+		c2.fillStyle = 'OrangeRed' 
+		c2.fillRect(100, 0, (p.animalcanvas.width)*(p.health/p.maxhealth), c2.canvas.height);
+		
+		
+		c2.strokeStyle = 'white' 
+		c2.lineWidth = 5
+		c2.strokeRect(100, 0, c2.canvas.width-100, c2.canvas.height);
+	} else {
+	
+		c2.fillStyle = 'OrangeRed' 
+		c2.fillRect(0, 0, c.width*(p.health/p.maxhealth), c2.canvas.height);
+		
+		
+		c2.strokeStyle = 'white' 
+		c2.lineWidth = 5
+		c2.strokeRect(0, 0, c2.canvas.width, c2.canvas.height);
+	}
+	
+	
+	
+
+	return(c);
+}
 
 function animal(animal) {
 	var c=document.createElement('canvas');
@@ -761,6 +811,13 @@ function Camera(x, y) {
     this.y = y;
 }
 
+function MovePacket(dx, dy, direction) {
+    this.dx = dx;
+    this.dy = dy;
+    this.direction = direction;
+}
+
+
 function Packet(type, data) {
     this.type = type;
     this.data = data;
@@ -771,6 +828,7 @@ function Player(name, x, y) { // 플레이어 객체
     this.x = x;
     this.y = y;
     this.health = 0;
+    this.maxhealth = 0;
     this.direction = "right"; // 어느 방향 쳐다보는지
     this.weapon = 0; // 무기를 몇초동안 보여야하는지
     this.centerX = 0;

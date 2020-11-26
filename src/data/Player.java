@@ -91,6 +91,11 @@ public class Player {
 		JsonObject obj = new JsonObject();
 		obj.addProperty("name", name);
 		obj.addProperty("health", health);
+		try {
+			obj.addProperty("maxhealth", animal.getMaxhealth());
+		} catch(Exception e) {
+			obj.addProperty("maxhealth", "0");
+		}
 		obj.addProperty("x", x);
 		obj.addProperty("y", y);
 		obj.addProperty("direction", direction);

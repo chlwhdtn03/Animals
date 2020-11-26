@@ -21,7 +21,7 @@ public class Animals {
 	public static int build;
 	public static AnimalsGUI gui;
 	public static final int MIN_PLAYER = 2;
-	public static int startCount = 10;
+	public static int startCount = 5;
 	
 	/** 정책 */
 	public static boolean isAllow_sameIP = true; // 동일 IP 다중접속 허용 여부
