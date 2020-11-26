@@ -16,6 +16,15 @@ public class Player {
 	private boolean leaved;
 	@SuppressWarnings("unused")
 	private Vector2D vector2d;
+	public boolean attacking;
+	
+	public boolean isAttacking() {
+		return attacking;
+	}
+	
+	public void setAttacking(boolean attacking) {
+		this.attacking = attacking;
+	}
 	
 	public void makeSpectator() {
 		x = 0;

@@ -38,6 +38,20 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			case "attack": {
 				Player player = gson.fromJson(gson.toJson(packet.getData()), Player.class);
 				Player attacker = getPlayer(player.getName());
+				if(attacker.isAttacking())
+					return;
+				attacker.setAttacking(true);
+				
+				Thread tempThread = new Thread(() -> { // 서버단에서 공격 쿨타임 관리
+					try {
+						Thread.sleep(995);
+						attacker.setAttacking(false);
+					} catch (InterruptedException e) {
+						Log.error(e);
+					}
+				});
+				tempThread.start();
+				
 				sendAll(new AnimalsPacket("attack", attacker));
 				try {
 					
@@ -51,7 +65,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							if(target.getName().equals(attacker.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(attacker, target, 25);
+								onDamageEvent(attacker, target, 5);
 							}
 							
 						}
@@ -64,7 +78,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							if(target.getName().equals(player.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(player, target, 25);
+								onDamageEvent(player, target, 5);
 							}
 							
 						}
