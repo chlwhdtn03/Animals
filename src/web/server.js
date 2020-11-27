@@ -40,6 +40,24 @@ function notice(msg) {
     noticeThread = setTimeout(function(){ x.className = x.className.replace("show", "hide"); }, 5000);
 }
 
+function appendKillcam(msg) {
+	var root = document.getElementById("killcam");
+	
+	var span = document.createElement("div");
+	span.style.width = "100%";
+	span.style.padding = "5px";
+	span.style.margin = "0 0 5px 0";
+	span.style.backgroundColor = "rgba(200,200,200,0.5)";
+	span.innerText = msg;
+	
+	root.appendChild(span);
+	setTimeout(function() {
+	
+		root.removeChild(span);
+	
+	}, 10*1000);
+}
+
 function send(obj) {
     socket.send(obj);
 }
@@ -125,6 +143,8 @@ function joinGame() {
 		        break;
             case "dead":
             	var dead = JSON.parse(data.dead);
+            	var killer = JSON.parse(data.killer);
+            	
                 getPlayer(dead.name).x = dead.x
                 getPlayer(dead.name).y = dead.y
                 getPlayer(dead.name).health = dead.health
@@ -137,7 +157,7 @@ function joinGame() {
 			    	$("#footer").show();
 			    	$("#btn-ready").hide();
 			    }
-        		notice(dead.name + " 탈락!");
+        		appendKillcam(killer.name + " 🔪  " + dead.name);
                 break;
             case "waitTostart":
                 notice(data + "초 후 게임이 시작됩니다!")

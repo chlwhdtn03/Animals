@@ -100,14 +100,14 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						return;
 					}
 					
-					if(player.getName().length() > 20 && Animals.isAllow_longName == false) {
+					if(player.getName().length() > 20 && Animals.isAllow_longName.isValue() == false) {
 						Log.warning(ws.remoteAddress() + "에서 너무 긴 닉네임을 사용하여 연결 해제하였습니다.");
 						send(ws, new AnimalsPacket("kick", 2));
 						ws.close();
 						return;
 					}
 					
-					if(isAlreadyIP(ws.remoteAddress()) && Animals.isAllow_sameIP == false) {
+					if(isAlreadyIP(ws.remoteAddress()) && Animals.isAllow_sameIP.isValue() == false) {
 						Log.warning(ws.remoteAddress() + "님은 이미 동일 IP에서 접속중입니다.");
 						send(ws, new AnimalsPacket("kick", 3));
 						ws.close();

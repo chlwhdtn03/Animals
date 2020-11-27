@@ -1,6 +1,7 @@
 package gui;
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout;import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
@@ -26,11 +27,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import animals.Animals;
 import data.Chat;
 import data.Player;
+import data.PointerBoolean;
 import packet.AnimalsPacket;
 import server.ConnectionListener;
 import util.Log;
@@ -43,6 +46,8 @@ public class AnimalsGUI extends JFrame {
 	public JScrollPane scrollbar;
 	public JList<String> playerlist;
 	public JScrollPane playerlist_scrollbar;
+	
+	public AnimalsToggle toggle_longname, toggle_sameIP;
 	
 	private Font font = new Font("맑은 고딕", Font.PLAIN, 14);
 	
@@ -115,7 +120,7 @@ public class AnimalsGUI extends JFrame {
 		
 		chat_field = new JTextField();
 		chat_field.setOpaque(true);
-		chat_field.setBorder(null);
+		chat_field.setBorder(new LineBorder(Color.white));
 		chat_field.setBackground(SystemColor.lightGray);
 		chat_field.setFont(font);
 		
@@ -178,6 +183,20 @@ public class AnimalsGUI extends JFrame {
 				((JLabel) e.getSource()).setText("주소창에 '" + addresslist.get(address_count++) + "' 를 입력하세요");
 			}
 		});
+		
+		// Toggle
+		
+		JPanel togglePanel = new JPanel(new FlowLayout());
+		toggle_longname = new AnimalsToggle(Animals.isAllow_longName);
+		toggle_sameIP = new AnimalsToggle(Animals.isAllow_sameIP);
+
+		togglePanel.add(new JLabel("긴 닉네임 허용"));
+		togglePanel.add(toggle_longname);
+		togglePanel.add(new JLabel("동일 IP 다중접속 허용"));
+		togglePanel.add(toggle_sameIP);
+		
+		add(togglePanel, BorderLayout.SOUTH);
+		
 		add(playerlist_scrollbar, BorderLayout.EAST);
 		
 		add(connectDescription, BorderLayout.NORTH);

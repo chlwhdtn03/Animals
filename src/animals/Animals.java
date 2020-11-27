@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import data.MapType;
 import data.Player;
+import data.PointerBoolean;
 import gui.AnimalsGUI;
 import server.AnimalServer;
 import util.Log;
@@ -24,8 +25,8 @@ public class Animals {
 	public static int startCount = 5;
 	
 	/** 정책 */
-	public static boolean isAllow_sameIP = true; // 동일 IP 다중접속 허용 여부
-	public static boolean isAllow_longName = true; // 긴 닉네임 허용 여부
+	public static PointerBoolean isAllow_sameIP = new PointerBoolean(false); // 동일 IP 다중접속 허용 여부
+	public static PointerBoolean isAllow_longName = new PointerBoolean(false); // 긴 닉네임 허용 여부
 	
 	/** 중요 데이터 */
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
