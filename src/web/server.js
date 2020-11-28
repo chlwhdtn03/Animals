@@ -43,17 +43,24 @@ function notice(msg) {
 function appendKillcam(msg) {
 	var root = document.getElementById("killcam");
 	
-	var span = document.createElement("div");
-	span.style.width = "100%";
+	var div = document.createElement("div");
+	
+	div.style.width = "100%";
+	div.style.textAlign = "right";
+	div.style.padding = "5px";
+	div.style.margin = "0 0 5px 0";
+	
+	var span = document.createElement("span");
 	span.style.padding = "5px";
-	span.style.margin = "0 0 5px 0";
 	span.style.backgroundColor = "rgba(200,200,200,0.5)";
 	span.innerText = msg;
 	
-	root.appendChild(span);
+	div.appendChild(span);
+	
+	root.prepend(div);
 	setTimeout(function() {
 	
-		root.removeChild(span);
+		root.removeChild(div);
 	
 	}, 10*1000);
 }
@@ -145,6 +152,8 @@ function joinGame() {
             	var dead = JSON.parse(data.dead);
             	var killer = JSON.parse(data.killer);
             	
+            	getPlayer(killer.name).health = killer.health
+            	
                 getPlayer(dead.name).x = dead.x
                 getPlayer(dead.name).y = dead.y
                 getPlayer(dead.name).health = dead.health
@@ -158,7 +167,11 @@ function joinGame() {
 			    	$("#btn-ready").hide();
 			    }
         		appendKillcam(killer.name + " 🔪  " + dead.name);
+        		if(data.left == 2) {
+        			appendKillcam("1:1 대치!");
+        		}
                 break;
+                
             case "waitTostart":
                 notice(data + "초 후 게임이 시작됩니다!")
                 break;
@@ -310,9 +323,6 @@ function InGame() {
 			       	if(my.y > 0) {
 			       		dy = -2;
 			       	}
-			        if(camera.y > 0 && my.centerY < current_MAP.height-(canvas.height/2)) {
-			            camera.y -= 2
-				    }
 			    } else { // 관전자
 			        
 			      	if(camera.y > 0) {
@@ -327,8 +337,6 @@ function InGame() {
 		       	if(!isObserver) { // 플레이어
 			        if(my.y < current_MAP.height-150)
 			        	dy = +2;
-			        if(my.centerY > canvas.height/2 && camera.y+canvas.height < current_MAP.height)
-			           	camera.y += 2;
 		        } else { // 관전자
 			        if(camera.y + canvas.height < current_MAP.height)
 			            camera.y += 1*4;
@@ -339,9 +347,6 @@ function InGame() {
 		      	if(!isObserver) { // 플레이어
 			   		if(my.x > 0)
 			     		dx = -2;
-			        
-			        if(camera.x > 0 && my.centerX < current_MAP.width-(canvas.width/2))
-			            camera.x -= 2;  
 		        } else { // 관전자
 		       		if(camera.x > 0)
 			            camera.x -= 1*4;
@@ -352,8 +357,6 @@ function InGame() {
 		    	if(!isObserver) {
 			       	if(my.x < current_MAP.width-150)
 			       		dx = +2;
-			        if(my.centerX > canvas.width/2 && camera.x+canvas.width < current_MAP.width)
-			          	camera.x += 2
 		        } else {
 		          	if(camera.x + canvas.width < current_MAP.width)
 		          		camera.x += 1*4;
@@ -373,6 +376,7 @@ function InGame() {
 		    if(!isObserver) {
 			    my.centerX = my.x + my.animalcanvas.width/2;
 			    my.centerY = my.y + my.animalcanvas.height/2;
+			    
 		    }
             
 	       	if((dx || dy) && !isObserver) {
@@ -408,7 +412,7 @@ function InGame() {
 					if(p.y < camera.y-150 || p.y > camera.y+canvas.height)
 						continue;
 					
-					ctx.drawImage(drawHealthBar(p), p.x-camera.x, p.y-camera.y-50)
+					ctx.drawImage(drawHealthBar(p), p.x-camera.x, p.y-camera.y-20)
 					
 					if(p.direction == "right") {
 						
@@ -453,6 +457,20 @@ function InGame() {
 			// 내 캐릭터 그리기 || 만약 지금 내가 캐릭터가 있는가를 구분하여 관전자인지 플레이어로 구분
 			if(!isObserver) {
 			
+				if(my.centerX < canvas.width/2)
+					camera.x = 0;
+				else if(my.centerX+canvas.width/2 > current_MAP.width)
+					camera.x = current_MAP.width - canvas.width;
+				else
+               		camera.x = my.centerX - canvas.width/2;
+               		
+               	if(my.centerY < canvas.height/2)
+					camera.y = 0;
+				else if(my.centerY+canvas.height/2 > current_MAP.height)
+					camera.y = current_MAP.height - canvas.height;
+				else
+               		camera.y = my.centerY - canvas.height/2;
+               		
 				
 				if(my.direction == "right") { // 오른쪽으로 간다면( dx가 양수일 때)
 					ctx.save();
@@ -507,9 +525,9 @@ function InGame() {
 				   		ctx.restore();
 					}
 				}
+				ctx.drawImage(drawHealthBar(my), 50, 200)
 			}			
 			ctx.drawImage(map(ctx,current_MAP),50,50)
-			ctx.drawImage(drawHealthBar(my), 50, 200)
 		}
 		if(my.weapon + 1000 < timestamp) {
 			my.weapon = 0; // 소멸

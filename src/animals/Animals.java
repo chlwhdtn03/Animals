@@ -22,7 +22,7 @@ public class Animals {
 	public static int build;
 	public static AnimalsGUI gui;
 	public static final int MIN_PLAYER = 2;
-	public static int startCount = 5;
+	public static int startCount = 10;
 	
 	/** 정책 */
 	public static PointerBoolean isAllow_sameIP = new PointerBoolean(false); // 동일 IP 다중접속 허용 여부
@@ -30,8 +30,8 @@ public class Animals {
 	
 	/** 중요 데이터 */
 	public static List<Player> onlinePlayers = new ArrayList<Player>();
-	public static boolean isStarted = false; // 게임이 시작됬는지
-	public static boolean isIniting = false; // 게임이 시작 준비에 들어갔는지.(게임이 시작될땐 false로 바뀜)
+	public static PointerBoolean isStarted = new PointerBoolean(false); // 게임이 시작됬는지
+	public static PointerBoolean isIniting = new PointerBoolean(false); // 게임이 시작 준비에 들어갔는지.(게임이 시작될땐 false로 바뀜)
 	public static MapType map;
 
 	

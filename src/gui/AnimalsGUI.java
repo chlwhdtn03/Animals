@@ -48,6 +48,7 @@ public class AnimalsGUI extends JFrame {
 	public JScrollPane playerlist_scrollbar;
 	
 	public AnimalsToggle toggle_longname, toggle_sameIP;
+	public AnimalsLED led_start;
 	
 	private Font font = new Font("맑은 고딕", Font.PLAIN, 14);
 	
@@ -120,7 +121,8 @@ public class AnimalsGUI extends JFrame {
 		
 		chat_field = new JTextField();
 		chat_field.setOpaque(true);
-		chat_field.setBorder(new LineBorder(Color.white));
+		chat_field.setBorder(null);
+		chat_field.setToolTipText("채팅");
 		chat_field.setBackground(SystemColor.lightGray);
 		chat_field.setFont(font);
 		
@@ -189,6 +191,7 @@ public class AnimalsGUI extends JFrame {
 		JPanel togglePanel = new JPanel(new FlowLayout());
 		toggle_longname = new AnimalsToggle(Animals.isAllow_longName);
 		toggle_sameIP = new AnimalsToggle(Animals.isAllow_sameIP);
+		led_start = new AnimalsLED(Animals.isStarted);
 
 		togglePanel.add(new JLabel("긴 닉네임 허용"));
 		togglePanel.add(toggle_longname);

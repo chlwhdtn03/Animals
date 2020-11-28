@@ -35,6 +35,8 @@ public class Player {
 	}
 	
 	public void setHealth(int health) {
+		if(health > getMaxhealth())
+			health = getMaxhealth();
 		this.health = health;
 	}
 	public int getHealth() {

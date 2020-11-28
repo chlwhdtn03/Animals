@@ -52,6 +52,10 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 				});
 				tempThread.start();
 				
+				if(attacker.getX() != player.getX() || attacker.getY() != player.getY()) {
+					send(attacker.getWs(), new AnimalsPacket("move", attacker));
+				}
+				
 				sendAll(new AnimalsPacket("attack", attacker));
 				try {
 					
@@ -65,20 +69,20 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							if(target.getName().equals(attacker.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(attacker, target, 5);
+								onDamageEvent(attacker, target, 25);
 							}
 							
 						}
 					} else if(player.getDirection().equals("left")) { // 왼쪽을 바라보고 있을 때
-						Vector2D attack_zone = new Vector2D(player.getX()-player.getAnimal().getHeight(), player.getY(),
-								player.getX(), player.getY()+player.getAnimal().getHeight());
+						Vector2D attack_zone = new Vector2D(attacker.getX()-attacker.getAnimal().getHeight(), attacker.getY(),
+								attacker.getX(), attacker.getY()+attacker.getAnimal().getHeight());
 						
 						for(Player target : Animals.onlinePlayers) {
 							if(target.getAnimal() == null) continue; // 관전자는 검사할 필요 X
-							if(target.getName().equals(player.getName())) continue; // 동일인은 검사할 필요 X
+							if(target.getName().equals(attacker.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(player, target, 5);
+								onDamageEvent(attacker, target, 25);
 							}
 							
 						}
@@ -117,7 +121,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					player.setWs(ws);
 					send(ws, new AnimalsPacket("build", Animals.build));
 					
-					if(Animals.isStarted || Animals.isIniting)
+					if(Animals.isStarted.isValue() || Animals.isIniting.isValue())
 						send(ws, new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
 					
 					for (Player p : Animals.onlinePlayers) {
@@ -196,7 +200,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	}
 
 	public static void checkMinPlayer() {
-		if(Animals.isStarted) { // 게임이 진행중일때
+		if(Animals.isStarted.isValue()) { // 게임이 진행중일때
 			Collector<Player, ?, List<Player>> collector = Collectors.toList();
 			int count = Animals.onlinePlayers.stream().filter(p->p.getAnimal()!=null).collect(collector).size(); // 생존자 수 구함
 			if(count< Animals.MIN_PLAYER) { // 생존자 수가 게임을 진행하는데 필요한 최소인원보다 적으면
@@ -204,11 +208,21 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 			}					
 		} else {
 			if(isAllReady(Animals.MIN_PLAYER)) { // 2명 이상 이고 모두 레디 눌렀을때
-				if(Animals.isStarted)
+				if(Animals.isStarted.isValue())
 					return;
 				
 				int temp;
 				Random random = new Random();
+				
+				switch(random.nextInt(2)) {
+				case 0:
+					Animals.map = MapType.Field; break;
+				case 1:
+					Animals.map = MapType.Desert; break;
+				}
+				sendAll(new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
+				
+				
 				for(Player p : Animals.onlinePlayers) { // 모두에게 랜덤으로 동물 배정
 						if(p.getAnimal() != null)
 							continue;
@@ -230,21 +244,17 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						else if(temp == 7)
 							p.setAnimal(AnimalType.유인원);			
 						
+						
 						p.setHealth(p.getAnimal().getMaxhealth());
+						p.setX(random.nextInt(Animals.map.getWidth()-500)+250);
+						p.setY(random.nextInt(Animals.map.getHeight()-500)+250);
+						sendAll(new AnimalsPacket("move", p)); // 랜덤 좌표 전송
 						sendAll(new AnimalsPacket("changeProfile", p)); // 바뀐 프로필 적용
 				}
-				if(Animals.isIniting)
+				if(Animals.isIniting.isValue())
 					return;
 
-				Animals.isIniting = true;
-				
-				switch(random.nextInt(2)) {
-				case 0:
-					Animals.map = MapType.Field; break;
-				case 1:
-					Animals.map = MapType.Desert; break;
-				}
-				sendAll(new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
+				Animals.isIniting.setValue(true);
 				
 				Thread tempThread = new Thread(() -> {
 					for(int i = Animals.startCount; i > 0; i--) {
@@ -257,8 +267,8 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						}
 					}
 					Log.info("게임이 시작되었습니다.");
-					Animals.isStarted = true; // 게임 시작 기록
-					Animals.isIniting = false;
+					Animals.isStarted.setValue(true); // 게임 시작 기록
+					Animals.isIniting.setValue(false);
 					sendAll(new AnimalsPacket("startgame", 1)); // 전원에게 게임 시작
 				});
 				tempThread.start();
@@ -279,17 +289,20 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	}
 
 	private void onDamageEvent(Player attacker, Player target, int damage) {
-
+		
 		sendAll(new AnimalsPacket("damage", new Damage(attacker.getName(), target.getName(), damage)));
 		target.setHealth(target.getHealth() - damage);
 		
 		if(target.getHealth() <= 0) {
 			Log.info(target.getName() + "님이 사망하였습니다!");
+			attacker.setHealth(attacker.getHealth() + 25);
 			target.makeSpectator();
-			sendAll(new AnimalsPacket("dead", new Dead(attacker, target)));
-			
+
 			Collector<Player, ?, List<Player>> collector = Collectors.toList();
 			int count = Animals.onlinePlayers.stream().filter(p->p.getAnimal()!=null).collect(collector).size();
+			
+			sendAll(new AnimalsPacket("dead", new Dead(attacker, target, count)));
+			
 			if(count == 1) { // 남은 생존자가 1명이라면
 				Player winner = Animals.onlinePlayers.stream().filter(p->p.getAnimal()!=null).findAny().get();
 				sendAll(new AnimalsPacket("winner", winner));
@@ -361,8 +374,8 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 	}
 	
 	public static void resetGame(int stopcode) { // 0 : 인원 부족 종료, 1 : 승리 종료
-		Animals.isIniting = false;
-		Animals.isStarted = false;
+		Animals.isIniting.setValue(false);
+		Animals.isStarted.setValue(false);
 		
 		for(Player p : Animals.onlinePlayers) {
 			p.setAnimal(null);

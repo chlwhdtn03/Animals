@@ -132,12 +132,12 @@ button {
 
 
 #killcam {
+	z-index: 10;
 	right: 30px;
 	top: 30px;
-	width: 200px;
+	width: 40%;
 	height: 300px;
 	position: fixed;
-
 }
 
 
