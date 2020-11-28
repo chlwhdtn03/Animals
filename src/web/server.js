@@ -117,6 +117,11 @@ function joinGame() {
             	cause = "게임 도중에 게임창을 내리지 마세요!"
                 notice(cause)
                 break;
+                
+           case 6:
+            	cause = "닉네임이 너무 깁니다."
+                notice(cause)
+                break;
         }
         window.cancelAnimationFrame(screenThread);
         $("#QueueFrame").show();

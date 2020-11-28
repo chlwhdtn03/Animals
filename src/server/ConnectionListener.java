@@ -69,7 +69,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							if(target.getName().equals(attacker.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(attacker, target, 25);
+								onDamageEvent(attacker, target, 5);
 							}
 							
 						}
@@ -82,7 +82,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 							if(target.getName().equals(attacker.getName())) continue; // 동일인은 검사할 필요 X
 							
 							if(Vector2D.isCoveredWithVector2D(attack_zone, target.getVector2D())) { // 피격 당하면
-								onDamageEvent(attacker, target, 25);
+								onDamageEvent(attacker, target, 5);
 							}
 							
 						}
@@ -106,7 +106,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					
 					if(player.getName().length() > 20 && Animals.isAllow_longName.isValue() == false) {
 						Log.warning(ws.remoteAddress() + "에서 너무 긴 닉네임을 사용하여 연결 해제하였습니다.");
-						send(ws, new AnimalsPacket("kick", 2));
+						send(ws, new AnimalsPacket("kick", 6));
 						ws.close();
 						return;
 					}
