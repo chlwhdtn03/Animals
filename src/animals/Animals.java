@@ -1,19 +1,12 @@
 package animals;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-
 import data.MapType;
 import data.Player;
 import data.PointerBoolean;
 import gui.AnimalsGUI;
 import server.AnimalServer;
-import util.Log;
 
 public class Animals {
 	/** 웹 포트 */
@@ -53,8 +46,8 @@ public class Animals {
 		
 	}
 
-	private static void loadBuildCount() {
-		
+//	private static void loadBuildCount() {
+//		
 //		try {
 //			Properties pro = new Properties();
 //			File f_build = new File("build.txt");
@@ -69,6 +62,6 @@ public class Animals {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
-	}
+//	}
 
 }

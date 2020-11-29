@@ -1,6 +1,6 @@
 package gui;
 
-import java.awt.BorderLayout;import java.awt.Color;
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.SystemColor;
@@ -27,13 +27,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import animals.Animals;
 import data.Chat;
 import data.Player;
-import data.PointerBoolean;
 import packet.AnimalsPacket;
 import server.ConnectionListener;
 import util.Log;

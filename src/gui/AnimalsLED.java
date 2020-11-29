@@ -2,15 +2,13 @@ package gui;
 
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JToggleButton;
 import data.PointerBoolean;
 
+@SuppressWarnings("serial")
 public class AnimalsLED extends JCheckBox {
 	
 	PointerBoolean target;

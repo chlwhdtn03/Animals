@@ -9,6 +9,7 @@ import javax.swing.JToggleButton;
 
 import data.PointerBoolean;
 
+@SuppressWarnings("serial")
 public class AnimalsToggle extends JToggleButton {
 	
 	PointerBoolean target;
