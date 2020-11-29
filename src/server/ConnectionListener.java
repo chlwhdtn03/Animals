@@ -17,6 +17,7 @@ import data.MapType;
 import data.MovePacket;
 import data.Player;
 import data.Ready;
+import data.StringPacket;
 import data.Vector2D;
 import io.vertx.core.Handler;
 import io.vertx.core.http.ServerWebSocket;
@@ -119,7 +120,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 					}
 					
 					player.setWs(ws);
-					send(ws, new AnimalsPacket("build", Animals.build));
+					send(ws, new AnimalsPacket("build", new StringPacket(Animals.version)));
 					
 					if(Animals.isStarted.isValue() || Animals.isIniting.isValue())
 						send(ws, new AnimalsPacket("changeMAP", new Map(Animals.map))); // 현재 맵 전송
@@ -311,7 +312,7 @@ public class ConnectionListener implements Handler<ServerWebSocket> {
 						Thread.sleep(Animals.startCount * 1000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Log.error(e);
 					}
 					resetGame(1);
 				});

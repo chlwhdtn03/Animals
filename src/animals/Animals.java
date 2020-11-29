@@ -19,7 +19,7 @@ public class Animals {
 	/** 웹 포트 */
 	public static final int port = 80;
 	
-	public static int build;
+	public static String version = "Final 1.04";
 	public static AnimalsGUI gui;
 	public static final int MIN_PLAYER = 2;
 	public static int startCount = 10;
@@ -36,7 +36,7 @@ public class Animals {
 
 	
 	public static void main(String[] args) {
-		loadBuildCount();
+//		loadBuildCount();
 		
 		Thread Thread_console = new Thread(() -> {
 			gui = new AnimalsGUI();
@@ -69,7 +69,6 @@ public class Animals {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
-		build = 1203;
 	}
 
 }

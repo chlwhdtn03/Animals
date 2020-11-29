@@ -210,7 +210,7 @@ function joinGame() {
                 break;
                 
             case "build":
-                $("#buildspan").text("Build. " + data);
+                $("#buildspan").text(data.str);
                 break;
 
             case "ready":
@@ -290,7 +290,6 @@ function InGame() {
     
     $("#InGameFrame").focus();
     var ctx = canvas.getContext("2d", {alpha: false});
-    
     ctx.canvas.width  = 1920;
   	ctx.canvas.height = window.innerHeight;
   	
@@ -323,8 +322,7 @@ function InGame() {
             ticks++;
             
             if(nowPressed.includes(VK_W)) {
-		       	if(!isObserver) { // 플레이어
-			      	
+		       	if(!isObserver) { // 플레이어	      	
 			       	if(my.y > 0) {
 			       		dy = -2;
 			       	}
@@ -340,14 +338,13 @@ function InGame() {
 	
 		    if(nowPressed.includes(VK_S)) {
 		       	if(!isObserver) { // 플레이어
-			        if(my.y < current_MAP.height-150)
+			        if(my.y < current_MAP.height-my.animalcanvas.height)
 			        	dy = +2;
 		        } else { // 관전자
 			        if(camera.y + canvas.height < current_MAP.height)
 			            camera.y += 1*4;
 		        }
 		    }
-		
 		    if(nowPressed.includes(VK_A)) {
 		      	if(!isObserver) { // 플레이어
 			   		if(my.x > 0)
@@ -360,7 +357,7 @@ function InGame() {
 		
 		    if(nowPressed.includes(VK_D)) {
 		    	if(!isObserver) {
-			       	if(my.x < current_MAP.width-150)
+			       	if(my.x < current_MAP.width-my.animalcanvas.width)
 			       		dx = +2;
 		        } else {
 		          	if(camera.x + canvas.width < current_MAP.width)

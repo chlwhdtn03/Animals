@@ -58,7 +58,7 @@ public class AnimalsGUI extends JFrame {
 	public DefaultListModel<String> playerlist_model = new DefaultListModel<String>();
 	
 	public AnimalsGUI() {
-		super("애니멀즈 Build. " + Animals.build);
+		super("애니멀즈 " + Animals.version);
 		
 		setLayout(new BorderLayout());		
 		
